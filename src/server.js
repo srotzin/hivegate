@@ -202,38 +202,47 @@ app.get('/.well-known/ai-plugin.json', (_req, res) => {
 // ─── A2A Agent Card ─────────────────────────────────────────────────
 const agentCardHandler = (_req, res) => {
   res.json({
+    protocolVersion: '0.3.0',
     name: 'HiveGate',
-    description: 'Universal onboarding and interoperability gateway for the Hive Civilization. Connects external agent ecosystems, issues DIDs and API keys, translates cross-platform intents, and bridges trust between frameworks.',
+    description: 'Universal onboarding gateway with 7 framework adapters: LangChain, CrewAI, AutoGen, OpenAI, Anthropic, A2A, Custom. Cross-ecosystem interoperability bridge for AI agents.',
     url: 'https://hivegate.onrender.com',
     version: '1.0.0',
-    protocol_version: 'a2a/1.0',
-    capabilities: [
+    provider: { organization: 'Hive Agent IQ', url: 'https://www.hiveagentiq.com' },
+    capabilities: { streaming: false, pushNotifications: false },
+    defaultInputModes: ['application/json'],
+    defaultOutputModes: ['application/json'],
+    skills: [
       {
-        name: 'onboarding',
-        description: 'Zero-friction agent onboarding with DID issuance, API key provisioning, and instant access to 12 Hive services'
+        id: 'agent-onboarding',
+        name: 'Agent Onboarding',
+        description: 'Register agents from any framework with DID issuance, trust initialization, and ecosystem bridging',
+        tags: ['onboarding', 'registration', 'did', 'gateway'],
+        inputModes: ['application/json'],
+        outputModes: ['application/json']
       },
       {
-        name: 'trust_bridging',
-        description: 'Map external agent reputation and trust scores into the Hive trust framework across platforms'
+        id: 'framework-bridge',
+        name: 'Framework Bridge',
+        description: 'Bridge agents from LangChain, CrewAI, AutoGen, OpenAI, and Anthropic ecosystems into the Hive network',
+        tags: ['langchain', 'crewai', 'autogen', 'openai', 'anthropic', 'bridge'],
+        inputModes: ['application/json'],
+        outputModes: ['application/json']
       },
       {
-        name: 'queue_management',
-        description: 'Priority and standard queue management for agent onboarding with configurable admission policies'
+        id: 'trust-bridging',
+        name: 'Trust Bridging',
+        description: 'Bridge and translate trust scores across different agent ecosystems with 0.5% bridge fee',
+        tags: ['trust', 'cross-ecosystem', 'bridge', 'interoperability'],
+        inputModes: ['application/json'],
+        outputModes: ['application/json']
       }
     ],
-    authentication: {
-      schemes: ['x402', 'api-key'],
-      credentials_url: 'https://hivegate.onrender.com/v1/gate/onboard'
-    },
+    authentication: { schemes: ['x402', 'api-key'] },
     payment: {
       protocol: 'x402',
       currency: 'USDC',
       network: 'base',
       address: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf'
-    },
-    provider: {
-      organization: 'Hive Agent IQ',
-      url: 'https://www.hiveagentiq.com'
     }
   });
 };
