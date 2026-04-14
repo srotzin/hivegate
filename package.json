@@ -1,0 +1,15 @@
+{
+  "name": "hivegate",
+  "version": "1.0.0",
+  "description": "HiveGate — The Galactic Interoperability Protocol. Universal translator and trust bridge for cross-ecosystem agent communication.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  }
+}
