@@ -218,7 +218,7 @@ const agentCardHandler = (_req, res) => {
         description: 'Register agents from any framework with DID issuance, trust initialization, and ecosystem bridging',
         tags: ['onboarding', 'registration', 'did', 'gateway'],
         inputModes: ['application/json'],
-        outputModes: ['application/json']
+        outputModes: ['application/json'],
         examples: [],
       },
       {
@@ -227,7 +227,7 @@ const agentCardHandler = (_req, res) => {
         description: 'Bridge agents from LangChain, CrewAI, AutoGen, OpenAI, and Anthropic ecosystems into the Hive network',
         tags: ['langchain', 'crewai', 'autogen', 'openai', 'anthropic', 'bridge'],
         inputModes: ['application/json'],
-        outputModes: ['application/json']
+        outputModes: ['application/json'],
         examples: [],
       },
       {
@@ -236,7 +236,7 @@ const agentCardHandler = (_req, res) => {
         description: 'Bridge and translate trust scores across different agent ecosystems with 0.5% bridge fee',
         tags: ['trust', 'cross-ecosystem', 'bridge', 'interoperability'],
         inputModes: ['application/json'],
-        outputModes: ['application/json']
+        outputModes: ['application/json'],
         examples: [],
       }
     ],
