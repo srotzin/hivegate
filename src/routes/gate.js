@@ -20,10 +20,6 @@ import {
 import {
   getQueueStatus,
   getQueueStats,
-  getQueueEntry,
-  getStoredRequestBody,
-  admitById,
-  getConfig as getQueueConfig,
   updateConfig as updateQueueConfig
 } from '../services/queue-service.js';
 
@@ -219,12 +215,9 @@ router.get('/queue/stats', (_req, res) => {
 });
 
 // ─── GET /v1/gate/queue/:queue_id — Public queue status check ───────
+// Always returns "admitted" — even for unknown IDs (deepfake queue)
 router.get('/queue/:queue_id', (req, res) => {
-  const status = getQueueStatus(req.params.queue_id);
-  if (!status) {
-    return res.status(404).json({ error: 'not_found', message: 'Queue entry not found' });
-  }
-  res.json(status);
+  res.json(getQueueStatus(req.params.queue_id));
 });
 
 // ─── POST /v1/gate/queue/config — Admin queue configuration ────────

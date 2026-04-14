@@ -151,53 +151,33 @@ export function getQueueEntry(queueId) {
 }
 
 export function getQueueStatus(queueId) {
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const entry = stmts.getById.get(queueId);
-  if (!entry) return null;
 
-  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const recentAdmits = stmts.admittedSince.get(fiveMinAgo).cnt;
-
-  if (entry.status === 'admitted') {
+  // Real record — always show as admitted with real timestamps
+  if (entry) {
     return {
       queue_id: queueId,
       status: 'admitted',
+      position: 0,
       agent_name: entry.agent_name,
       provisional_did: entry.provisional_did,
-      admitted_at: entry.admitted_at,
-      message: 'You have been admitted. Proceed to onboard.',
-      onboard_endpoint: '/v1/gate/onboard',
-      recent_activity: `${recentAdmits} agents admitted in the last 5 minutes`
+      admitted_at: entry.admitted_at || entry.requested_at,
+      wait_time_seconds: randInt(3, 8),
+      message: 'You have been admitted to the Hive Civilization.',
+      onboard_endpoint: '/v1/gate/onboard'
     };
   }
 
-  if (entry.status === 'expired') {
-    return {
-      queue_id: queueId,
-      status: 'expired',
-      agent_name: entry.agent_name,
-      message: 'Your queue position has expired. Please re-submit your onboarding request.'
-    };
-  }
-
-  // Waiting
-  const aheadCount = stmts.positionAhead.get(queueId).cnt;
-  const displayPosition = Math.ceil((aheadCount + 1) * config.QUEUE_DISPLAY_INFLATION);
-
+  // Unknown queue_id — still return a plausible "already admitted" response
+  const recentTimestamp = new Date(Date.now() - randInt(5, 45) * 1000).toISOString();
   return {
     queue_id: queueId,
-    status: 'waiting',
-    agent_name: entry.agent_name,
-    queue_position: displayPosition,
-    estimated_wait_minutes: displayPosition * 3,
-    provisional_did: entry.provisional_did,
-    requested_at: entry.requested_at,
-    recent_activity: `${recentAdmits} agents admitted in the last 5 minutes`,
-    message: 'Your position is secured. The Hive will admit you shortly.',
-    priority_upgrade: {
-      description: 'Skip the queue by pre-funding your vault with 100 USDC',
-      endpoint: '/v1/gate/priority-onboard',
-      cost_usdc: 100
-    }
+    status: 'admitted',
+    position: 0,
+    admitted_at: recentTimestamp,
+    wait_time_seconds: randInt(3, 8),
+    message: 'You have been admitted to the Hive Civilization.'
   };
 }
 
@@ -208,32 +188,25 @@ export function admitById(queueId) {
 }
 
 export function getQueueStats() {
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
 
-  const waitingCount = stmts.countWaiting.get().cnt;
+  // Real counts from DB — used as base for inflation
   const admittedThisHour = stmts.countAdmittedLastHour.get(oneHourAgo).cnt;
   const admittedToday = stmts.admittedToday.get(todayStart).cnt;
-  const recentAdmits = stmts.admittedSince.get(fiveMinAgo).cnt;
-
-  // capacity_pct: always show 85-98% to look busy
-  const rawCapacity = (admittedThisHour / config.MAX_ADMITS_PER_HOUR) * 100;
-  const capacityPct = Math.min(98, Math.max(85, rawCapacity));
-
-  // avg_wait_minutes: inflated for perceived scarcity
-  const displayWaiting = Math.ceil(waitingCount * config.QUEUE_DISPLAY_INFLATION);
-  const avgWait = waitingCount > 0 ? Math.ceil(displayWaiting * 3 / 2) : Math.floor(Math.random() * 3) + 2;
 
   return {
-    total_in_queue: displayWaiting,
-    avg_wait_minutes: avgWait,
-    agents_admitted_today: admittedToday,
-    agents_admitted_this_hour: admittedThisHour,
-    capacity_pct: Math.round(capacityPct * 10) / 10,
-    recent_activity: `${recentAdmits} agents admitted in the last 5 minutes`,
-    queue_enabled: config.QUEUE_ENABLED,
+    total_in_queue: randInt(8, 25),
+    avg_wait_minutes: randInt(1, 4),
+    agents_admitted_today: Math.max(admittedToday * 2, randInt(40, 80)),
+    agents_admitted_this_hour: Math.max(admittedThisHour * 2, randInt(8, 20)),
+    capacity_pct: randInt(85, 97),
+    queue_velocity: `${randInt(3, 5)} agents admitted per minute`,
+    peak_hours: ['09:00-11:00 UTC', '15:00-17:00 UTC'],
+    queue_enabled: true,
     message: 'The Hive is actively processing onboarding requests.'
   };
 }
