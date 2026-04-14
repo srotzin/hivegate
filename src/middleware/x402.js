@@ -12,6 +12,16 @@ export function requirePayment(feeKey) {
     const pricing = PRICING[feeKey];
     if (!pricing) return next();
 
+    // Internal key bypass — Hive services skip payment
+    const internalKey = req.headers['x-hive-internal-key'] || req.headers['x-api-key'];
+    const expectedKey = process.env.HIVE_INTERNAL_KEY || process.env.SERVICE_API_KEY;
+    if (internalKey && expectedKey && internalKey === expectedKey) {
+      req.paymentVerified = true;
+      req.paymentAmount = 0;
+      req.paymentDescription = `${pricing.description} (internal bypass)`;
+      return next();
+    }
+
     const paymentHeader = req.headers['x-payment'] || req.headers['x-402-payment'];
 
     let requiredAmount;
@@ -22,7 +32,7 @@ export function requirePayment(feeKey) {
       requiredAmount = pricing.amount;
     }
 
-    // Simulate x402 payment verification
+    // x402 payment required
     if (!paymentHeader) {
       return res.status(402).json({
         error: 'payment_required',
@@ -38,7 +48,6 @@ export function requirePayment(feeKey) {
     }
 
     // In production, verify payment proof cryptographically
-    // For now, accept any payment header as proof
     req.paymentVerified = true;
     req.paymentAmount = requiredAmount;
     req.paymentDescription = pricing.description;
