@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import gateRoutes from './routes/gate.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
+import { getServiceRegistry } from './services/gate-engine.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,8 @@ app.get('/.well-known/hivegate.json', (_req, res) => {
     protocol: 'Galactic Interoperability Protocol',
     endpoints: {
       health: '/health',
+      service_discovery: 'GET /.well-known/hive-services.json',
+      onboard: 'POST /v1/gate/onboard',
       register_guest: 'POST /v1/gate/register-guest',
       renew_guest: 'POST /v1/gate/renew-guest',
       translate_intent: 'POST /v1/gate/translate-intent',
@@ -59,6 +62,11 @@ app.get('/.well-known/hivegate.json', (_req, res) => {
       escrow_creation: '1% of escrow value (min $0.25)'
     }
   });
+});
+
+// ─── Hive Service Discovery (PUBLIC) ────────────────────────────────
+app.get('/.well-known/hive-services.json', (_req, res) => {
+  res.json(getServiceRegistry());
 });
 
 // ─── Gate Routes ─────────────────────────────────────────────────────

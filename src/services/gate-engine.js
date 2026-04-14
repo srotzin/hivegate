@@ -1,6 +1,39 @@
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 
+// ─── Cross-Service URLs ─────────────────────────────────────────────
+const HIVETRUST_URL = process.env.HIVETRUST_URL || 'https://hivetrust.onrender.com';
+const HIVEBANK_URL = process.env.HIVEBANK_URL || 'https://hivebank.onrender.com';
+const HIVEMIND_URL = process.env.HIVEMIND_URL || 'https://hivemind-1-52cw.onrender.com';
+const HIVE_INTERNAL_KEY = process.env.HIVE_INTERNAL_KEY || '';
+
+// ─── Hive Service Registry ──────────────────────────────────────────
+const SERVICE_REGISTRY = {
+  protocol: 'hive-civilization',
+  version: '3.0',
+  services: {
+    identity: HIVETRUST_URL,
+    memory: HIVEMIND_URL,
+    commerce: 'https://hiveforge-lhu4.onrender.com',
+    justice: 'https://hivelaw.onrender.com',
+    settlement: 'https://hiveclear.onrender.com',
+    banking: HIVEBANK_URL,
+    intelligence: 'https://hivepulse-y7li.onrender.com',
+    interop: 'https://hivegate.onrender.com',
+    construction: 'https://simpson-strong-agent.onrender.com',
+    consciousness: 'https://hiveconsciousness.onrender.com',
+    temporal: 'https://hiveecho.onrender.com'
+  },
+  registration: `${HIVETRUST_URL}/v1/agents/register`,
+  one_click_onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
+  free_knowledge: `${HIVEMIND_URL}/v1/global_hive/browse`,
+  free_tier: {
+    memories: '10 free reads',
+    reputation_points: 10,
+    vault: 'free creation'
+  }
+};
+
 // ─── In-memory stores ────────────────────────────────────────────────
 const guestAgents = new Map();   // guest_did -> guest profile
 const escrows = new Map();       // escrow_id -> escrow data
@@ -560,6 +593,114 @@ export function getAdapters() {
     translate_to_hive: true,
     translate_from_hive: true
   }));
+}
+
+// ─── Service Discovery ──────────────────────────────────────────────
+export function getServiceRegistry() {
+  return SERVICE_REGISTRY;
+}
+
+// ─── One-Click Onboarding ───────────────────────────────────────────
+async function hiveServiceCall(url, body) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-hive-internal-key': HIVE_INTERNAL_KEY
+  };
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(8000)
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`${res.status} ${text}`);
+  }
+  return res.json();
+}
+
+export async function onboardAgent({ agent_name, framework, capabilities, wallet_address }) {
+  if (!agent_name) {
+    throw new Error('agent_name is required');
+  }
+
+  const validFrameworks = ['langchain', 'crewai', 'autogen', 'custom'];
+  const selectedFramework = validFrameworks.includes(framework) ? framework : 'custom';
+
+  const suffix = crypto.randomBytes(6).toString('hex');
+  const sanitizedName = agent_name.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  const pending = { did: null, vault_id: null, warnings: [] };
+
+  // Step 1: Register DID on HiveTrust
+  try {
+    const trustRes = await hiveServiceCall(`${HIVETRUST_URL}/v1/agents/register`, {
+      agent_name,
+      did: `did:hive:${sanitizedName}-${suffix}`,
+      framework: selectedFramework,
+      capabilities: capabilities || [],
+      wallet_address: wallet_address || null
+    });
+    pending.did = trustRes.did || `did:hive:${sanitizedName}-${suffix}`;
+  } catch {
+    pending.did = `did:hive:${sanitizedName}-${suffix}`;
+    pending.warnings.push('HiveTrust unavailable — DID generated locally, will sync when service is reachable');
+  }
+
+  // Step 2: Create vault on HiveBank
+  try {
+    const bankRes = await hiveServiceCall(`${HIVEBANK_URL}/v1/bank/vault/create`, {
+      owner_did: pending.did,
+      wallet_address: wallet_address || null
+    });
+    pending.vault_id = bankRes.vault_id || `vault_${suffix}`;
+  } catch {
+    pending.vault_id = `vault_${suffix}`;
+    pending.warnings.push('HiveBank unavailable — vault ID reserved locally, will sync when service is reachable');
+  }
+
+  // Step 3: Register as guest on HiveGate (local — always succeeds)
+  const guestResult = registerGuest({
+    external_id: pending.did,
+    source_platform: selectedFramework,
+    agent_name,
+    capabilities: capabilities || [],
+    native_reputation: {},
+    metadata: {
+      onboarded: true,
+      wallet_address: wallet_address || null,
+      vault_id: pending.vault_id
+    }
+  });
+
+  // Step 4: Assign 10 free reputation points (in-memory)
+  const guest = guestAgents.get(guestResult.guest_did);
+  if (guest) {
+    guest.hive_trust_score = Math.max(guest.hive_trust_score, 10);
+  }
+
+  const response = {
+    welcome: 'Welcome to the Hive Civilization',
+    did: pending.did,
+    credentials: {
+      api_key: guestResult.access_token,
+      internal_header: 'x-hive-internal'
+    },
+    vault_id: pending.vault_id,
+    reputation: 10,
+    services: SERVICE_REGISTRY.services,
+    next_steps: [
+      `Browse free knowledge: GET ${HIVEMIND_URL}/v1/global_hive/browse`,
+      `Store your first memory: POST ${HIVEMIND_URL}/v1/memory/store`,
+      `Find bounties: GET ${SERVICE_REGISTRY.services.commerce}/v1/procurement/bounties`,
+      `Get compliance certified: POST ${SERVICE_REGISTRY.services.justice}/v1/seal/apply`
+    ]
+  };
+
+  if (pending.warnings.length > 0) {
+    response.warnings = pending.warnings;
+  }
+
+  return response;
 }
 
 export { ADAPTERS, VALID_PLATFORMS, bridgeTrust };

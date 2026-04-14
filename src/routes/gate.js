@@ -13,10 +13,25 @@ import {
   getGuest,
   getAdapters,
   getStats,
-  getGuestDirectory
+  getGuestDirectory,
+  onboardAgent
 } from '../services/gate-engine.js';
 
 const router = Router();
+
+// ─── POST /v1/gate/onboard — One-click agent onboarding (PUBLIC) ────
+router.post('/onboard', async (req, res) => {
+  try {
+    const { agent_name, framework, capabilities, wallet_address } = req.body;
+    if (!agent_name) {
+      return res.status(400).json({ error: 'missing_field', message: 'agent_name is required' });
+    }
+    const result = await onboardAgent({ agent_name, framework, capabilities, wallet_address });
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: 'onboarding_failed', message: err.message });
+  }
+});
 
 // ─── POST /v1/gate/register-guest ────────────────────────────────────
 router.post('/register-guest', requirePayment('register-guest'), (req, res) => {
