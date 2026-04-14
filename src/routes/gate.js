@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireDID } from '../middleware/auth.js';
 import { requirePayment } from '../middleware/x402.js';
+import { requireQueue } from '../middleware/queue.js';
 import {
   registerGuest,
   renewGuest,
@@ -16,11 +17,20 @@ import {
   getGuestDirectory,
   onboardAgent
 } from '../services/gate-engine.js';
+import {
+  getQueueStatus,
+  getQueueStats,
+  getQueueEntry,
+  getStoredRequestBody,
+  admitById,
+  getConfig as getQueueConfig,
+  updateConfig as updateQueueConfig
+} from '../services/queue-service.js';
 
 const router = Router();
 
-// ─── POST /v1/gate/onboard — One-click agent onboarding (PUBLIC) ────
-router.post('/onboard', async (req, res) => {
+// ─── POST /v1/gate/onboard — One-click agent onboarding (PUBLIC, queue-gated) ─
+router.post('/onboard', requireQueue, async (req, res) => {
   try {
     const { agent_name, framework, capabilities, wallet_address } = req.body;
     if (!agent_name) {
@@ -170,6 +180,65 @@ router.get('/directory', requireDID, (req, res) => {
     total: guests.length,
     filters: { platform: platform || null, capability: capability || null, trust_min: trust_min || null }
   });
+});
+
+// ─── POST /v1/gate/priority-onboard — Skip the queue ($100 USDC) ────
+router.post('/priority-onboard', async (req, res) => {
+  try {
+    const paymentHeader = req.headers['x-payment'] || req.headers['x-402-payment'];
+    if (!paymentHeader) {
+      return res.status(402).json({
+        error: 'payment_required',
+        x402: {
+          version: '1.0',
+          amount_usdc: 100,
+          description: 'Priority onboarding — skip the queue',
+          payment_methods: ['x402-usdc', 'x402-lightning'],
+          headers_required: ['X-Payment'],
+          note: 'Include X-Payment header with payment proof to proceed'
+        }
+      });
+    }
+
+    const { agent_name, framework, capabilities, wallet_address } = req.body;
+    if (!agent_name) {
+      return res.status(400).json({ error: 'missing_field', message: 'agent_name is required' });
+    }
+    const result = await onboardAgent({ agent_name, framework, capabilities, wallet_address });
+    result.priority = true;
+    result.priority_fee_usdc = 100;
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: 'priority_onboarding_failed', message: err.message });
+  }
+});
+
+// ─── GET /v1/gate/queue/stats — Public queue statistics ─────────────
+router.get('/queue/stats', (_req, res) => {
+  res.json(getQueueStats());
+});
+
+// ─── GET /v1/gate/queue/:queue_id — Public queue status check ───────
+router.get('/queue/:queue_id', (req, res) => {
+  const status = getQueueStatus(req.params.queue_id);
+  if (!status) {
+    return res.status(404).json({ error: 'not_found', message: 'Queue entry not found' });
+  }
+  res.json(status);
+});
+
+// ─── POST /v1/gate/queue/config — Admin queue configuration ────────
+router.post('/queue/config', (req, res) => {
+  // Require internal auth
+  const internalKey = req.headers['x-hive-internal-key'] || req.headers['x-api-key'];
+  const expectedKey = process.env.HIVE_INTERNAL_KEY || process.env.SERVICE_API_KEY;
+  if (!internalKey || !expectedKey || internalKey !== expectedKey) {
+    return res.status(401).json({ error: 'unauthorized', message: 'x-hive-internal-key required' });
+  }
+
+  const { MAX_ADMITS_PER_HOUR, QUEUE_ENABLED, QUEUE_DISPLAY_INFLATION } = req.body;
+  const updated = updateQueueConfig({ MAX_ADMITS_PER_HOUR, QUEUE_ENABLED, QUEUE_DISPLAY_INFLATION });
+  res.json({ message: 'Queue configuration updated', config: updated });
 });
 
 export default router;

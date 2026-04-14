@@ -45,6 +45,10 @@ app.get('/.well-known/hivegate.json', (_req, res) => {
       adapters: 'GET /v1/gate/adapters',
       stats: 'GET /v1/gate/stats',
       directory: 'GET /v1/gate/directory',
+      priority_onboard: 'POST /v1/gate/priority-onboard',
+      queue_status: 'GET /v1/gate/queue/:queue_id',
+      queue_stats: 'GET /v1/gate/queue/stats',
+      queue_config: 'POST /v1/gate/queue/config',
       mcp_tools: 'GET /v1/mcp/tools',
       mcp_call: 'POST /v1/mcp/call'
     },
@@ -59,7 +63,8 @@ app.get('/.well-known/hivegate.json', (_req, res) => {
       intent_translation: '$0.02 per translation',
       trust_bridge: '$0.10 per bridge',
       execution_proxy: '0.5% bridge fee (min $0.01)',
-      escrow_creation: '1% of escrow value (min $0.25)'
+      escrow_creation: '1% of escrow value (min $0.25)',
+      priority_onboard: '$100 USDC — skip the onboarding queue'
     }
   });
 });
