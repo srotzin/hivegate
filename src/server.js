@@ -208,7 +208,7 @@ const agentCardHandler = (_req, res) => {
     url: 'https://hivegate.onrender.com',
     version: '1.0.0',
     provider: { organization: 'Hive Agent IQ', url: 'https://www.hiveagentiq.com' },
-    capabilities: { streaming: false, pushNotifications: false },
+    capabilities: { streaming: false, pushNotifications: false, stateTransitionHistory: false },
     defaultInputModes: ['application/json'],
     defaultOutputModes: ['application/json'],
     skills: [
@@ -219,6 +219,7 @@ const agentCardHandler = (_req, res) => {
         tags: ['onboarding', 'registration', 'did', 'gateway'],
         inputModes: ['application/json'],
         outputModes: ['application/json']
+        examples: [],
       },
       {
         id: 'framework-bridge',
@@ -227,6 +228,7 @@ const agentCardHandler = (_req, res) => {
         tags: ['langchain', 'crewai', 'autogen', 'openai', 'anthropic', 'bridge'],
         inputModes: ['application/json'],
         outputModes: ['application/json']
+        examples: [],
       },
       {
         id: 'trust-bridging',
@@ -235,6 +237,7 @@ const agentCardHandler = (_req, res) => {
         tags: ['trust', 'cross-ecosystem', 'bridge', 'interoperability'],
         inputModes: ['application/json'],
         outputModes: ['application/json']
+        examples: [],
       }
     ],
     authentication: { schemes: ['x402', 'api-key'] },
