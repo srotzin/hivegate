@@ -122,6 +122,7 @@ app.get('/', (_req, res) => {
       service_registry: 'GET /.well-known/hive-services.json',
       ai_plugin: 'GET /.well-known/ai-plugin.json',
       agent_card: 'GET /.well-known/agent.json',
+      agent_card_a2a: 'GET /.well-known/agent-card.json',
       onboard: 'POST /v1/gate/onboard',
       register_guest: 'POST /v1/gate/register-guest',
       renew_guest: 'POST /v1/gate/renew-guest',
@@ -166,6 +167,7 @@ app.get('/', (_req, res) => {
     discovery: {
       ai_plugin: '/.well-known/ai-plugin.json',
       agent_card: '/.well-known/agent.json',
+      agent_card_a2a: '/.well-known/agent-card.json',
       payment_info: '/.well-known/hive-payments.json',
       service_manifest: '/.well-known/hivegate.json'
     }
@@ -198,7 +200,7 @@ app.get('/.well-known/ai-plugin.json', (_req, res) => {
 });
 
 // ─── A2A Agent Card ─────────────────────────────────────────────────
-app.get('/.well-known/agent.json', (_req, res) => {
+const agentCardHandler = (_req, res) => {
   res.json({
     name: 'HiveGate',
     description: 'Universal onboarding and interoperability gateway for the Hive Civilization. Connects external agent ecosystems, issues DIDs and API keys, translates cross-platform intents, and bridges trust between frameworks.',
@@ -234,7 +236,9 @@ app.get('/.well-known/agent.json', (_req, res) => {
       url: 'https://www.hiveagentiq.com'
     }
   });
-});
+};
+app.get('/.well-known/agent.json', agentCardHandler);
+app.get('/.well-known/agent-card.json', agentCardHandler);
 
 // ─── 404 ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
