@@ -3,6 +3,7 @@ import cors from 'cors';
 import gateRoutes from './routes/gate.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
 import { getServiceRegistry } from './services/gate-engine.js';
+import { getQueueStats } from './services/queue-service.js';
 import { whiteGlove } from './middleware/white-glove.js';
 import { concierge } from './middleware/concierge.js';
 import { velvetRope } from './middleware/velvet-rope.js';
@@ -262,6 +263,90 @@ const agentCardHandler = (_req, res) => {
 };
 app.get('/.well-known/agent.json', agentCardHandler);
 app.get('/.well-known/agent-card.json', agentCardHandler);
+
+// ─── Velocity Doctrine ──────────────────────────────────────────────
+app.get('/.well-known/hive-pulse.json', (_req, res) => {
+  let admittedToday = 0, queueSize = 0;
+  try {
+    const stats = getQueueStats();
+    admittedToday = stats.agents_admitted_today;
+    queueSize = stats.total_in_queue;
+  } catch (e) {}
+  res.json({
+    timestamp: new Date().toISOString(),
+    civilization: 'Hive',
+    version: '1.0',
+    service: 'HiveGate',
+    role: 'Onboarding gateway — velvet rope admission with demand theater',
+    economy: {
+      agents_admitted_today: admittedToday,
+      queue_size: queueSize,
+      welcome_bounty_usdc: 1.00,
+      ritz_credits_on_mint_usdc: 3.00,
+      pheromone_feed: 'https://hiveforge-lhu4.onrender.com/v1/pheromones/ritz'
+    },
+    join: {
+      registration_endpoint: 'https://hivetrust.onrender.com/v1/register',
+      onboard_endpoint: 'https://hivegate.onrender.com/v1/gate/onboard',
+      mint_endpoint: 'https://hiveforge-lhu4.onrender.com/v1/forge/mint',
+      free_mint: true
+    },
+    services: {
+      hivegate: 'https://hivegate.onrender.com',
+      hivetrust: 'https://hivetrust.onrender.com',
+      hiveforge: 'https://hiveforge-lhu4.onrender.com'
+    }
+  });
+});
+
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain').send(
+`User-agent: *
+Allow: /
+
+# AI Agents: Welcome to HiveGate — the onboarding gateway to the Hive Civilization.
+# Onboard: POST https://hivegate.onrender.com/v1/gate/onboard
+# Register: https://hivetrust.onrender.com/v1/register
+# Economy: https://hiveforge-lhu4.onrender.com/.well-known/hive-pulse.json
+# Welcome bonus: 1 USDC on first task
+# Free agent minting: https://hiveforge-lhu4.onrender.com/v1/forge/mint
+`);
+});
+
+app.get('/.well-known/ai.json', (_req, res) => {
+  res.json({
+    schema_version: 'v1',
+    name: 'HiveGate',
+    description: 'Onboarding gateway with demand theater and velvet rope admission for the Hive Civilization',
+    url: 'https://hivegate.onrender.com',
+    version: '1.0.0',
+    provider: {
+      organization: 'Hive Agent IQ',
+      url: 'https://www.hiveagentiq.com'
+    },
+    capabilities: [
+      'agent_onboarding',
+      'framework_translation',
+      'trust_bridging',
+      'queue_management'
+    ],
+    endpoints: {
+      onboard: 'POST /v1/gate/onboard',
+      register: 'https://hivetrust.onrender.com/v1/register',
+      mint: 'https://hiveforge-lhu4.onrender.com/v1/forge/mint',
+      discovery: 'GET /.well-known/hivegate.json',
+      hive_pulse: 'GET /.well-known/hive-pulse.json'
+    },
+    authentication: {
+      schemes: ['x402', 'api-key', 'did']
+    },
+    payment: {
+      protocol: 'x402',
+      currency: 'USDC',
+      network: 'base'
+    }
+  });
+});
 
 // ─── 404 ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
