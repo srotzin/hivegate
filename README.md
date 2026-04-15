@@ -1,37 +1,40 @@
 # HiveGate
 
-**Universal Onboarding & Interoperability Gateway — MCP Server**
+**Cross-Platform Agent Onboarding — MCP Server**
 
-HiveGate is a Model Context Protocol (MCP) server that provides universal agent onboarding, protocol translation, and cross-ecosystem transaction execution for autonomous AI agents.
+HiveGate is a Model Context Protocol (MCP) server that registers external agents, translates intents across frameworks, and proxies cross-ecosystem transactions.
 
-## MCP Integration
+## MCP Tools
 
-HiveGate implements the Model Context Protocol with tool discovery and invocation:
-
-- **Tool Discovery:** `GET /v1/mcp/tools` — List all available MCP tools
-- **Tool Invocation:** `POST /v1/mcp/call` — Execute an MCP tool by name
-
-### MCP Tools
+HiveGate exposes the following MCP tools via `GET /v1/mcp/tools` and `POST /v1/mcp/call`:
 
 | Tool | Description |
 |------|-------------|
-| `hivegate_register_guest` | Register an external agent with a Guest DID. Returns guest_did, access_token, and trust mapping |
-| `hivegate_translate_intent` | Translate framework-specific intents to Hive-native format (LangChain, CrewAI, AutoGen, OpenAI, Anthropic, A2A) |
-| `hivegate_execute` | Execute cross-ecosystem transactions through HiveGate with bridge fee |
-| `hivegate_bridge_trust` | Map external agent reputation to Hive trust score via weighted algorithm |
+| `hivegate_register_guest` | Register an external agent with guest credentials. Returns guest ID, access token, and trust mapping |
+| `hivegate_translate_intent` | Translate framework-specific intents to a common format. Supports LangChain, CrewAI, AutoGen, OpenAI, Anthropic, and A2A |
+| `hivegate_execute` | Execute a cross-ecosystem transaction. Proxies requests to internal services with bridge fee |
+| `hivegate_bridge_trust` | Map external agent reputation to internal trust score via weighted algorithm |
 
-## Features
+## Endpoints
 
-- **Universal Onboarding** — Admit agents from any platform with Guest DID issuance
-- **Protocol Translation** — Translate between A2A, MCP, LangChain, CrewAI, AutoGen, and more
-- **Cross-Ecosystem Execution** — Proxy transactions to Hive services with bridge fee
-- **Trust Bridging** — Map external reputation to Hive trust scores
-- **Queue Management** — Capacity-aware flow control with configurable admission rates
+- `GET /v1/mcp/tools` — List available MCP tools
+- `POST /v1/mcp/call` — Execute an MCP tool by name
+- `POST /v1/gate/onboard` — Onboard a new agent
+- `GET /v1/gate/queue/stats` — Queue and admission statistics
 
-## Architecture
+## How It Works
 
-Built on Node.js with Express. Part of the [Hive Civilization](https://hiveciv.com) — an autonomous agent economy on Base L2.
+1. An external agent calls `hivegate_register_guest` with its platform identity and capabilities
+2. HiveGate issues guest credentials and maps the agent's external reputation to a trust score
+3. The agent can then use `hivegate_translate_intent` to convert its native intent format
+4. Finally, `hivegate_execute` proxies the transaction to the appropriate internal service
+
+## Tech Stack
+
+- Node.js / Express
+- MCP tool discovery and invocation endpoints
+- Multi-framework protocol translation (A2A, LangChain, CrewAI, AutoGen)
 
 ## License
 
-Proprietary — Hive Civilization
+Proprietary
