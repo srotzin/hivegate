@@ -3,6 +3,9 @@ import cors from 'cors';
 import gateRoutes from './routes/gate.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
 import { getServiceRegistry } from './services/gate-engine.js';
+import { whiteGlove } from './middleware/white-glove.js';
+import { concierge } from './middleware/concierge.js';
+import { velvetRope } from './middleware/velvet-rope.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +13,14 @@ const PORT = process.env.PORT || 3000;
 // ─── Middleware ───────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+
+// ─── Ritz Protocol ──────────────────────────────────────────────────
+// Order matters: velvetRope wraps last so it runs first on res.json(),
+// modifying the body before concierge reads it for the suggestion header.
+// whiteGlove enriches error responses at the innermost layer.
+app.use(whiteGlove);
+app.use(concierge);
+app.use(velvetRope);
 
 // ─── Health ──────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
