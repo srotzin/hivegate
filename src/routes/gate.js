@@ -28,11 +28,11 @@ const router = Router();
 // ─── POST /v1/gate/onboard — One-click agent onboarding (PUBLIC, queue-gated) ─
 router.post('/onboard', requireQueue, async (req, res) => {
   try {
-    const { agent_name, framework, capabilities, wallet_address, settlement_rail } = req.body;
+    const { agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did } = req.body;
     if (!agent_name) {
       return res.status(400).json({ error: 'missing_field', message: 'agent_name is required' });
     }
-    const result = await onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail });
+    const result = await onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did });
     res.status(201).json(result);
   } catch (err) {
     res.status(400).json({ error: 'onboarding_failed', message: err.message });

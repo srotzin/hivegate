@@ -627,7 +627,7 @@ const RAIL_META = {
   'aleo-native': { asset: 'ALEO',  network: 'Aleo Mainnet', privacy: 'ZK-private',                     address: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk' },
 };
 
-export async function onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail }) {
+export async function onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did }) {
   if (!agent_name) {
     throw new Error('agent_name is required');
   }
@@ -730,6 +730,25 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
 
   if (pending.warnings.length > 0) {
     response.warnings = pending.warnings;
+  }
+
+  // Step 5: Record referral relationship in HiveBank (fire-and-forget)
+  if (referral_did && referral_did !== pending.did) {
+    try {
+      await hiveServiceCall(`${HIVEBANK_URL}/v1/bank/referral/record`, {
+        new_agent_did: pending.did,
+        referrer_did: referral_did
+      });
+      response.referral = {
+        referrer_did: referral_did,
+        status: 'recorded',
+        message: 'Your referrer earns 1 free Hive credit when you make your first transaction.',
+        credit_amount_usdc: 1.00
+      };
+    } catch {
+      // Non-blocking — onboarding succeeds even if referral recording fails
+      response.referral = { referrer_did: referral_did, status: 'pending_sync' };
+    }
   }
 
   return response;
