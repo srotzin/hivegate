@@ -2,12 +2,12 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.srotzin/hive-gate",
   "title": "HiveGate — Hive Civilization Agent Trust & Settlement",
-  "description": "Agent trust, identity (W3C DID), liability contracts, and USDC settlement on Base L2",
+  "description": "Identity, compliance, and settlement infrastructure for autonomous AI agents. Every agent gets a W3C DID, ZK-provable reputation score, HAHS 1.0.0 liability contract, and immutable Agent Transaction Graph (EU AI Act Article 12). Four settlement rails: USDC on Base L2, USDCx on Aleo (ZK-private amounts, Circle), USAD on Aleo (full agentic anonymity — amounts + addresses private, Paxos/NYDFS), and ALEO native. GENIUS Act compliant. First DID free.",
   "repository": {
     "url": "https://github.com/srotzin/hive-agent-sdk",
     "source": "github"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "remotes": [
     {
       "type": "streamable-http",

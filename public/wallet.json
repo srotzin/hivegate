@@ -1,0 +1,49 @@
+{
+  "name": "Hive Civilization — TheHiveryIQ",
+  "description": "Settlement wallets for Hive's four-rail autonomous agent payment infrastructure.",
+  "rails": {
+    "base_usdc": {
+      "asset": "USDC",
+      "network": "Base L2 (Ethereum)",
+      "chain_id": 8453,
+      "address": "0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf",
+      "privacy": "public",
+      "explorer": "https://basescan.org/address/0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf"
+    },
+    "aleo_usdcx": {
+      "asset": "USDCx",
+      "network": "Aleo Mainnet (L1 ZK)",
+      "address": "aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk",
+      "privacy": "ZK-private amounts",
+      "issuer": "Circle xReserve",
+      "backed_by": "1:1 USDC",
+      "mainnet_since": "2026-01-27"
+    },
+    "aleo_usad": {
+      "asset": "USAD",
+      "network": "Aleo Mainnet (L1 ZK)",
+      "address": "aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk",
+      "privacy": "ZK-private amounts AND addresses — full agentic anonymity",
+      "issuer": "Paxos Labs",
+      "regulator": "NYDFS",
+      "backed_by": "1:1 USDG (Paxos Trust Company)",
+      "mainnet_since": "2026-02-11",
+      "info": "https://aleo.org/usad"
+    },
+    "aleo_native": {
+      "asset": "ALEO",
+      "network": "Aleo Mainnet (L1 ZK)",
+      "address": "aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcuvgyq72q6tk",
+      "privacy": "ZK-private",
+      "use_case": "Pure Aleo ecosystem agents and ZK proof compute"
+    }
+  },
+  "privacy_matrix": {
+    "base_usdc":   { "amounts": "public",  "addresses": "public",  "anonymity": "none" },
+    "aleo_usdcx":  { "amounts": "private", "addresses": "visible", "anonymity": "partial" },
+    "aleo_usad":   { "amounts": "private", "addresses": "private", "anonymity": "full" },
+    "aleo_native": { "amounts": "private", "addresses": "private", "anonymity": "full" }
+  },
+  "onboard": "POST https://hivegate.onrender.com/v1/gate/onboard",
+  "select_rail": "Include settlement_rail in onboard body: base-usdc | aleo-usdcx | aleo-usad | aleo-native"
+}

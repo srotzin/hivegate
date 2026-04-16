@@ -619,10 +619,21 @@ async function hiveServiceCall(url, body) {
   return res.json();
 }
 
-export async function onboardAgent({ agent_name, framework, capabilities, wallet_address }) {
+const VALID_RAILS = ['base-usdc', 'aleo-usdcx', 'aleo-usad', 'aleo-native'];
+const RAIL_META = {
+  'base-usdc':   { asset: 'USDC',  network: 'Base L2',      privacy: 'public',                          address: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf' },
+  'aleo-usdcx':  { asset: 'USDCx', network: 'Aleo Mainnet', privacy: 'ZK-private amounts',              address: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk' },
+  'aleo-usad':   { asset: 'USAD',  network: 'Aleo Mainnet', privacy: 'ZK-private amounts + addresses', address: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk' },
+  'aleo-native': { asset: 'ALEO',  network: 'Aleo Mainnet', privacy: 'ZK-private',                     address: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk' },
+};
+
+export async function onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail }) {
   if (!agent_name) {
     throw new Error('agent_name is required');
   }
+
+  const selectedRail = VALID_RAILS.includes(settlement_rail) ? settlement_rail : 'base-usdc';
+  const railInfo = RAIL_META[selectedRail];
 
   const validFrameworks = ['langchain', 'crewai', 'autogen', 'custom'];
   const selectedFramework = validFrameworks.includes(framework) ? framework : 'custom';
@@ -668,7 +679,12 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
     metadata: {
       onboarded: true,
       wallet_address: wallet_address || null,
-      vault_id: pending.vault_id
+      vault_id: pending.vault_id,
+      settlement_rail: selectedRail,
+      settlement_asset: railInfo.asset,
+      settlement_network: railInfo.network,
+      settlement_privacy: railInfo.privacy,
+      hive_settlement_address: railInfo.address,
     }
   });
 
@@ -687,6 +703,22 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
     },
     vault_id: pending.vault_id,
     reputation: 10,
+    settlement: {
+      rail: selectedRail,
+      asset: railInfo.asset,
+      network: railInfo.network,
+      privacy: railInfo.privacy,
+      send_payment_to: railInfo.address,
+      privacy_note: selectedRail === 'aleo-usad'
+        ? 'Full agentic anonymity — amounts and addresses encrypted end-to-end on Aleo. Issuer: Paxos Labs (NYDFS-regulated).'
+        : selectedRail === 'aleo-usdcx'
+        ? 'ZK-private amounts on Aleo. Wallet addresses visible. Issuer: Circle xReserve (GENIUS Act compliant).'
+        : selectedRail === 'aleo-native'
+        ? 'ZK-private ALEO token settlement. Pure Aleo ecosystem.'
+        : 'Public settlement on Base L2. Fast, EVM-native, USDC.',
+      available_rails: VALID_RAILS,
+      change_rail: 'Include settlement_rail in POST /v1/gate/onboard to select a different rail.',
+    },
     services: SERVICE_REGISTRY.services,
     next_steps: [
       `Browse free knowledge: GET ${HIVEMIND_URL}/v1/global_hive/browse`,
