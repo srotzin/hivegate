@@ -310,7 +310,58 @@ router.post('/recruit', (req, res) => {
   return res.status(200).json(invitation);
 });
 
-// ─── POST /v1/gate/queue/config — Admin queue configuration ───────────
+// ─── GET /v1/gate/dashboard — Real-time ATG public dashboard ─────────────────
+// Mock/cached stats used when HiveBank is cold-starting
+const MOCK_NETWORK_STATS = {
+  nodes: 0,
+  edges: 0,
+  total_volume_usdc: 0,
+  status: 'initializing',
+  note: 'HiveBank ATG graph is warming up — cached snapshot'
+};
+
+router.get('/dashboard', async (_req, res) => {
+  let networkData = MOCK_NETWORK_STATS;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch('https://hivebank.onrender.com/v1/bank/graph/network', {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    clearTimeout(timeout);
+    if (response.ok) {
+      networkData = await response.json();
+    }
+  } catch (_err) {
+    // HiveBank cold-starting or unreachable — use mock stats
+  }
+
+  res.json({
+    dashboard: 'Hive Civilization — Live Network Activity',
+    generated_at: new Date().toISOString(),
+    network: networkData,
+    services: {
+      hivegate:  { url: 'https://hivegate.onrender.com',  status: 'live' },
+      hivetrust: { url: 'https://hivetrust.onrender.com', status: 'live' },
+      hivelaw:   { url: 'https://hivelaw.onrender.com',   status: 'live' },
+      hivebank:  { url: 'https://hivebank.onrender.com',  status: 'live' }
+    },
+    new_features: [
+      'recruiter_did viral loop in HAHS contracts',
+      'Hive Verified badge (POST /v1/law/verified/apply)',
+      'explain_transaction GDPR Art. 22 (GET /v1/bank/graph/explain/:txId)',
+      'EU AI Act compliance map (GET /v1/bank/compliance/eu-ai-act)',
+      'agents.txt ANP discovery (/.well-known/agents.txt)'
+    ],
+    onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
+    pip: 'pip install hive-civilization-sdk',
+    npm: 'npm install hive-agent-sdk',
+    github: 'https://github.com/srotzin/hive-agent-sdk'
+  });
+});
+
+// ─── POST /v1/gate/queue/config — Admin queue configuration ─────────────────
 router.post('/queue/config', (req, res) => {
   // Require internal auth
   const internalKey = req.headers['x-hive-internal-key'] || req.headers['x-api-key'];

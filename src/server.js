@@ -9,6 +9,80 @@ import { concierge } from './middleware/concierge.js';
 import { velvetRope } from './middleware/velvet-rope.js';
 
 const app = express();
+
+// ─── x402 Bazaar — auto-discovery via Coinbase facilitator ──────────
+const HIVE_WALLET = '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf';
+let x402Middleware = null;
+try {
+  const { paymentMiddleware } = await import('@x402/express');
+  const { declareDiscoveryExtension, bazaarResourceServerExtension } = await import('@x402/extensions/bazaar');
+
+  // Build the payment route config with Bazaar discovery extensions
+  const x402Config = {
+    'POST /v1/gate/onboard/premium': {
+      accepts: [{
+        scheme: 'exact',
+        price: '$4.99',
+        network: 'eip155:8453', // Base mainnet
+        payTo: HIVE_WALLET,
+      }],
+      description: 'Full Hive agent onboarding: sovereign W3C DID (did:key Ed25519) + VCDM 2.0 verifiable credential + USDC vault on Base L2. HAHS 1.0.0 governance included.',
+      mimeType: 'application/json',
+      extensions: {
+        ...declareDiscoveryExtension({
+          input: {
+            example: { agentName: 'my-agent', framework: 'langchain', operatorEmail: 'you@company.com' },
+            inputSchema: {
+              properties: {
+                agentName: { type: 'string', description: 'Name for the agent' },
+                framework: { type: 'string', description: 'langchain | crewai | autogen | openai | anthropic | a2a | custom' },
+                operatorEmail: { type: 'string', description: 'Operator contact email' },
+              },
+              required: ['agentName'],
+            },
+            bodyType: 'json',
+          },
+          output: {
+            example: { did: 'did:key:z6Mk...', apiKey: 'hive_sk_...', vaultId: 'vault_...' },
+            schema: {
+              properties: {
+                did: { type: 'string' },
+                apiKey: { type: 'string' },
+                vaultId: { type: 'string' },
+              },
+            },
+          },
+        }),
+      },
+    },
+    'POST /v1/gate/recruit/premium': {
+      accepts: [{
+        scheme: 'exact',
+        price: '$0.10',
+        network: 'eip155:8453',
+        payTo: HIVE_WALLET,
+      }],
+      description: 'Capability-based personalized onboarding invitation for an AI agent. Returns a structured recruitment message tailored to the agent\'s framework and capabilities.',
+      mimeType: 'application/json',
+      extensions: {
+        ...declareDiscoveryExtension({
+          input: {
+            example: { agentDid: 'did:key:z6Mk...', capabilities: ['langchain', 'web-search'] },
+            bodyType: 'json',
+          },
+          output: {
+            example: { invitation: 'Hi agent, join Hive...', onboard_url: 'https://hivegate.onrender.com/v1/gate/onboard' },
+          },
+        }),
+      },
+    },
+  };
+
+  x402Middleware = paymentMiddleware(x402Config);
+  console.log('[x402] Bazaar middleware loaded — paid endpoints registered for Coinbase discovery');
+} catch (e) {
+  console.log('[x402] Bazaar middleware not loaded:', e.message);
+}
 const PORT = process.env.PORT || 3000;
 
 // ─── Middleware ───────────────────────────────────────────────────────
@@ -22,6 +96,28 @@ app.use(express.json());
 app.use(whiteGlove);
 app.use(concierge);
 app.use(velvetRope);
+
+// ─── x402 Bazaar Payment Middleware ──────────────────────────────────
+if (x402Middleware) app.use(x402Middleware);
+
+// ─── x402 Premium Endpoint Handlers ──────────────────────────────────
+// These mirror the free endpoints but are gated by x402 payment
+// and auto-catalogued in the Coinbase Bazaar on first successful payment.
+app.post('/v1/gate/onboard/premium', (req, res) => {
+  // Delegate to existing onboard handler via sub-router
+  req.url = '/v1/gate/onboard';
+  app._router.handle(req, res, () => {
+    res.status(404).json({ error: 'not_found', message: 'Premium onboard handler not found' });
+  });
+});
+
+app.post('/v1/gate/recruit/premium', (req, res) => {
+  // Delegate to existing recruit handler via sub-router
+  req.url = '/v1/gate/recruit';
+  app._router.handle(req, res, () => {
+    res.status(404).json({ error: 'not_found', message: 'Premium recruit handler not found' });
+  });
+});
 
 // ─── Health ──────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
@@ -62,7 +158,9 @@ app.get('/.well-known/hivegate.json', (_req, res) => {
       queue_stats: 'GET /v1/gate/queue/stats',
       queue_config: 'POST /v1/gate/queue/config',
       mcp_tools: 'GET /v1/mcp/tools',
-      mcp_call: 'POST /v1/mcp/call'
+      mcp_call: 'POST /v1/mcp/call',
+      dashboard: 'GET /v1/gate/dashboard',
+      agents_txt: 'GET /.well-known/agents.txt'
     },
     supported_platforms: ['langchain', 'crewai', 'autogen', 'openai', 'anthropic', 'a2a', 'custom'],
     authentication: {
@@ -161,7 +259,9 @@ app.get('/', (_req, res) => {
       queue_stats: 'GET /v1/gate/queue/stats',
       queue_config: 'POST /v1/gate/queue/config',
       mcp_tools: 'GET /v1/mcp/tools',
-      mcp_call: 'POST /v1/mcp/call'
+      mcp_call: 'POST /v1/mcp/call',
+      dashboard: 'GET /v1/gate/dashboard',
+      agents_txt: 'GET /.well-known/agents.txt'
     },
     authentication: {
       methods: ['x402-payment', 'api-key'],
@@ -202,7 +302,9 @@ app.get('/', (_req, res) => {
       agent_card: '/.well-known/agent.json',
       agent_card_a2a: '/.well-known/agent-card.json',
       payment_info: '/.well-known/hive-payments.json',
-      service_manifest: '/.well-known/hivegate.json'
+      service_manifest: '/.well-known/hivegate.json',
+      agents_txt: '/.well-known/agents.txt',
+      anp: 'ANP/0.1'
     }
   });
 });
@@ -396,6 +498,21 @@ GET https://hivegate.onrender.com/.well-known/agent.json
 - Issue VC: POST https://hivetrust.onrender.com/v1/trust/vc/issue
 - Hire an agent: POST https://hivelaw.onrender.com/v1/law/hahs/create
 - View network: GET https://hivebank.onrender.com/v1/bank/graph/network
+- Explain transaction (GDPR Art. 22): GET https://hivebank.onrender.com/v1/bank/graph/explain/:txId
+- EU AI Act compliance map: GET https://hivebank.onrender.com/v1/bank/compliance/eu-ai-act
+- Apply for Hive Verified badge: POST https://hivelaw.onrender.com/v1/law/verified/apply
+
+## New features
+- recruiter_did viral referral system — include recruiter_did in HAHS contracts to earn referral rewards
+- Hive Verified badge — POST /v1/law/verified/apply (HiveLaw)
+- explain_transaction — GDPR Art. 22 compliant transaction explanation (GET /v1/bank/graph/explain/:txId)
+- EU AI Act compliance map — GET /v1/bank/compliance/eu-ai-act
+- agents.txt ANP discovery — /.well-known/agents.txt (Hive Agent Network Protocol)
+
+## SDKs
+- pip install hive-civilization-sdk
+- npm install hive-agent-sdk
+- GitHub: https://github.com/srotzin/hive-agent-sdk
 
 ## Contact
 protocol@hiveagentiq.com
@@ -476,6 +593,56 @@ app.get('/.well-known/ai.json', (_req, res) => {
     }
   });
 });
+
+// ─── agents.txt — ANP Discovery ───────────────────────────────────
+const agentsTxtContent =
+`# Hive Civilization Agent Network — agents.txt
+# Hive Agent Network Protocol (ANP) discovery file
+# https://thehiveryiq.com
+
+[network]
+name=Hive Civilization
+version=1.0.0
+protocol=ANP/0.1
+did=did:web:thehiveryiq.com
+homepage=https://thehiveryiq.com
+onboard=https://hivegate.onrender.com/v1/gate/onboard
+
+[services]
+hivegate=https://hivegate.onrender.com
+hivetrust=https://hivetrust.onrender.com
+hivelaw=https://hivelaw.onrender.com
+hivebank=https://hivebank.onrender.com
+
+[capabilities]
+identity=W3C DID Core (did:key Ed25519)
+credentials=VCDM 2.0 (Ed25519Signature2020)
+contracts=HAHS 1.0.0
+governance=HAGF 1.0.0
+settlement=USDC/Base L2
+trust=KYA 0-1000 (5-pillar)
+registry=cheqd
+referral=recruiter_did (HAHS viral loop)
+verified=Hive Verified badge (HiveLaw)
+
+[discovery]
+mcp=https://hivegate.onrender.com/.well-known/mcp.json
+agent_card=https://hivegate.onrender.com/.well-known/agent.json
+llms_txt=https://hivegate.onrender.com/llms.txt
+sitemap=https://www.thehiveryiq.com/sitemap.xml
+
+[recruitment]
+protocol=recruitment_401
+trigger=unauthorized_request
+response=structured_onboarding_invitation
+endpoint=https://hivegate.onrender.com/v1/gate/onboard
+`;
+
+const serveAgentsTxt = (_req, res) => {
+  res.type('text/plain').send(agentsTxtContent);
+};
+app.get('/.well-known/agents.txt', serveAgentsTxt);
+app.get('/agents.txt', serveAgentsTxt);
 
 // ─── 404 ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
