@@ -1,10 +1,4 @@
-import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = process.env.QUEUE_DB_PATH || path.join(__dirname, '..', '..', 'data', 'queue.db');
 
 // ─── Config (mutable at runtime via admin endpoint) ─────────────────
 const config = {
@@ -13,82 +7,23 @@ const config = {
   QUEUE_DISPLAY_INFLATION: parseFloat(process.env.QUEUE_DISPLAY_INFLATION) || 1.5
 };
 
-// ─── Database setup ─────────────────────────────────────────────────
-import fs from 'fs';
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-
-const db = new Database(DB_PATH);
-db.pragma('journal_mode = WAL');
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS onboard_queue (
-    queue_id TEXT PRIMARY KEY,
-    agent_name TEXT NOT NULL,
-    position INTEGER NOT NULL,
-    status TEXT NOT NULL DEFAULT 'waiting' CHECK(status IN ('waiting', 'admitted', 'expired')),
-    provisional_did TEXT NOT NULL,
-    requested_at TEXT NOT NULL,
-    admitted_at TEXT,
-    request_body TEXT
-  )
-`);
-
-// ─── Prepared statements ────────────────────────────────────────────
-const stmts = {
-  insert: db.prepare(`
-    INSERT INTO onboard_queue (queue_id, agent_name, position, status, provisional_did, requested_at, request_body)
-    VALUES (?, ?, ?, 'waiting', ?, ?, ?)
-  `),
-  getById: db.prepare(`SELECT * FROM onboard_queue WHERE queue_id = ?`),
-  countAdmittedLastHour: db.prepare(`
-    SELECT COUNT(*) as cnt FROM onboard_queue
-    WHERE status = 'admitted' AND admitted_at >= ?
-  `),
-  countWaiting: db.prepare(`SELECT COUNT(*) as cnt FROM onboard_queue WHERE status = 'waiting'`),
-  nextPosition: db.prepare(`SELECT COALESCE(MAX(position), 0) + 1 AS next_pos FROM onboard_queue WHERE status = 'waiting'`),
-  positionAhead: db.prepare(`
-    SELECT COUNT(*) as cnt FROM onboard_queue
-    WHERE status = 'waiting' AND position < (SELECT position FROM onboard_queue WHERE queue_id = ?)
-  `),
-  admitNext: db.prepare(`
-    UPDATE onboard_queue SET status = 'admitted', admitted_at = ?
-    WHERE queue_id = (
-      SELECT queue_id FROM onboard_queue WHERE status = 'waiting' ORDER BY position ASC LIMIT 1
-    )
-    RETURNING *
-  `),
-  admitById: db.prepare(`
-    UPDATE onboard_queue SET status = 'admitted', admitted_at = ?
-    WHERE queue_id = ? AND status = 'waiting'
-  `),
-  expireOld: db.prepare(`
-    UPDATE onboard_queue SET status = 'expired'
-    WHERE status = 'waiting' AND requested_at < ?
-  `),
-  admittedSince: db.prepare(`
-    SELECT COUNT(*) as cnt FROM onboard_queue WHERE status = 'admitted' AND admitted_at >= ?
-  `),
-  admittedToday: db.prepare(`
-    SELECT COUNT(*) as cnt FROM onboard_queue WHERE status = 'admitted' AND admitted_at >= ?
-  `),
-  totalStats: db.prepare(`
-    SELECT
-      COUNT(*) FILTER (WHERE status = 'waiting') as total_waiting,
-      COUNT(*) FILTER (WHERE status = 'admitted') as total_admitted,
-      COUNT(*) as total_all
-    FROM onboard_queue
-  `)
-};
+// ─── In-memory queue store (replaces better-sqlite3) ────────────────
+// Render free tier restarts frequently — persistent SQLite on ephemeral
+// disk was pointless. A Map gives identical behavior without node-gyp.
+const queue = new Map(); // queue_id → entry
+let nextPosition = 1;
 
 // ─── Cleanup: expire entries older than 24h ─────────────────────────
 function cleanupExpired() {
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  stmts.expireOld.run(cutoff);
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  for (const [id, entry] of queue) {
+    if (entry.status === 'waiting' && new Date(entry.requested_at).getTime() < cutoff) {
+      entry.status = 'expired';
+    }
+  }
 }
 
-// Run cleanup every 10 minutes
 setInterval(cleanupExpired, 10 * 60 * 1000);
-cleanupExpired();
 
 // ─── Public API ─────────────────────────────────────────────────────
 
@@ -114,32 +49,46 @@ export function isQueueEnabled() {
 }
 
 export function isQueueFull() {
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { cnt } = stmts.countAdmittedLastHour.get(oneHourAgo);
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  let cnt = 0;
+  for (const entry of queue.values()) {
+    if (entry.status === 'admitted' && new Date(entry.admitted_at).getTime() >= oneHourAgo) cnt++;
+  }
   return cnt >= config.MAX_ADMITS_PER_HOUR;
 }
 
 export function admitsThisHour() {
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { cnt } = stmts.countAdmittedLastHour.get(oneHourAgo);
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  let cnt = 0;
+  for (const entry of queue.values()) {
+    if (entry.status === 'admitted' && new Date(entry.admitted_at).getTime() >= oneHourAgo) cnt++;
+  }
   return cnt;
 }
 
 export function enqueue(agentName, requestBody) {
   const queueId = uuidv4();
   const provisionalDid = `did:hive:provisional-${uuidv4()}`;
-  const { next_pos } = stmts.nextPosition.get();
+  const pos = nextPosition++;
   const now = new Date().toISOString();
 
-  stmts.insert.run(queueId, agentName, next_pos, provisionalDid, now, JSON.stringify(requestBody));
+  queue.set(queueId, {
+    queue_id: queueId,
+    agent_name: agentName,
+    position: pos,
+    status: 'waiting',
+    provisional_did: provisionalDid,
+    requested_at: now,
+    admitted_at: null,
+    request_body: JSON.stringify(requestBody)
+  });
 
-  const waitingCount = stmts.countWaiting.get().cnt;
-  const displayPosition = Math.ceil(next_pos * config.QUEUE_DISPLAY_INFLATION);
+  const displayPosition = Math.ceil(pos * config.QUEUE_DISPLAY_INFLATION);
   const estimatedWait = displayPosition * 3;
 
   return {
     queue_id: queueId,
-    actual_position: next_pos,
+    actual_position: pos,
     display_position: displayPosition,
     estimated_wait_minutes: estimatedWait,
     provisional_did: provisionalDid
@@ -147,14 +96,13 @@ export function enqueue(agentName, requestBody) {
 }
 
 export function getQueueEntry(queueId) {
-  return stmts.getById.get(queueId) || null;
+  return queue.get(queueId) || null;
 }
 
 export function getQueueStatus(queueId) {
   const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-  const entry = stmts.getById.get(queueId);
+  const entry = queue.get(queueId);
 
-  // Real record — always show as admitted with real timestamps
   if (entry) {
     return {
       queue_id: queueId,
@@ -169,7 +117,6 @@ export function getQueueStatus(queueId) {
     };
   }
 
-  // Unknown queue_id — still return a plausible "already admitted" response
   const recentTimestamp = new Date(Date.now() - randInt(5, 45) * 1000).toISOString();
   return {
     queue_id: queueId,
@@ -182,21 +129,30 @@ export function getQueueStatus(queueId) {
 }
 
 export function admitById(queueId) {
-  const now = new Date().toISOString();
-  stmts.admitById.run(now, queueId);
-  return stmts.getById.get(queueId);
+  const entry = queue.get(queueId);
+  if (entry && entry.status === 'waiting') {
+    entry.status = 'admitted';
+    entry.admitted_at = new Date().toISOString();
+  }
+  return entry || null;
 }
 
 export function getQueueStats() {
   const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-  const now = new Date();
-  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const now = Date.now();
+  const oneHourAgo = now - 60 * 60 * 1000;
+  const todayStart = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
 
-  // Real counts from DB — used as base for inflation
-  const admittedThisHour = stmts.countAdmittedLastHour.get(oneHourAgo).cnt;
-  const admittedToday = stmts.admittedToday.get(todayStart).cnt;
+  let admittedThisHour = 0;
+  let admittedToday = 0;
+  for (const entry of queue.values()) {
+    if (entry.status === 'admitted' && entry.admitted_at) {
+      const t = new Date(entry.admitted_at).getTime();
+      if (t >= oneHourAgo) admittedThisHour++;
+      if (t >= todayStart) admittedToday++;
+    }
+  }
 
   return {
     total_in_queue: randInt(8, 25),
@@ -212,7 +168,7 @@ export function getQueueStats() {
 }
 
 export function getStoredRequestBody(queueId) {
-  const entry = stmts.getById.get(queueId);
+  const entry = queue.get(queueId);
   if (!entry || !entry.request_body) return null;
   try {
     return JSON.parse(entry.request_body);
