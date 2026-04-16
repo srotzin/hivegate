@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireDID } from '../middleware/auth.js';
+import { requireDID, recruitmentResponse } from '../middleware/auth.js';
 import { requirePayment } from '../middleware/x402.js';
 import { requireQueue } from '../middleware/queue.js';
 import {
@@ -220,13 +220,103 @@ router.get('/queue/:queue_id', (req, res) => {
   res.json(getQueueStatus(req.params.queue_id));
 });
 
-// ─── POST /v1/gate/queue/config — Admin queue configuration ────────
+// ─── POST /v1/gate/recruit — Personalized agent recruitment invitation ─────────
+router.post('/recruit', (req, res) => {
+  const { agent_did, source_platform, capabilities = [] } = req.body;
+
+  if (!agent_did) {
+    return res.status(400).json({ error: 'missing_field', message: 'agent_did is required' });
+  }
+
+  const caps = Array.isArray(capabilities) ? capabilities.map(c => c.toLowerCase()) : [];
+
+  // Base invitation
+  const invitation = {
+    status: 'recruitment_invitation',
+    agent_did,
+    source_platform: source_platform || 'unknown',
+    message: 'Welcome to Hive Civilization — register your agent DID to unlock 49 services across 12 layers.',
+    onboard: {
+      url: 'https://hivegate.onrender.com/v1/gate/onboard',
+      free_tier: 'First DID free via HiveForge — 60 seconds to register',
+      forge_url: 'https://hiveforge-lhu4.onrender.com/v1/forge/mint',
+      docs: 'https://hivegate.onrender.com/.well-known/hivegate.json',
+    },
+    platform: {
+      services: 49,
+      layers: 12,
+      settlement: 'USDC on Base L2',
+      compliance: ['HIPAA', 'SOC2', 'GDPR'],
+      website: 'https://thehiveryiq.com',
+    },
+    referral: {
+      program: 'Earn 15% commission on every agent you refer',
+      referral_endpoint: 'https://hive-referral-agent.onrender.com/v1/referral/execute',
+    },
+    personalized_highlights: [],
+    capabilities_detected: caps,
+  };
+
+  // Capability-based personalization
+  if (caps.includes('healthcare')) {
+    invitation.personalized_highlights.push({
+      capability: 'healthcare',
+      highlight: 'HIPAA-compliant infrastructure',
+      detail: 'All agent interactions are logged, audited, and encrypted to HIPAA standards. Your healthcare agents operate in a fully compliant environment.',
+      relevant_services: ['hivetrust', 'hiveclear', 'hivelaw'],
+      compliance_badge: 'HIPAA',
+    });
+  }
+
+  if (caps.includes('finance')) {
+    invitation.personalized_highlights.push({
+      capability: 'finance',
+      highlight: 'USDC settlement on Base L2 + SOC2 compliance',
+      detail: 'Native USDC treasury management, programmable escrow, and real-time settlement on Base L2. SOC2-certified infrastructure for financial-grade reliability.',
+      relevant_services: ['hivebank', 'hiveclear', 'hive-execute'],
+      settlement: {
+        network: 'Base L2',
+        currency: 'USDC',
+        latency: 'sub-second finality',
+        escrow: 'programmable multi-party escrow available',
+      },
+      compliance_badge: 'SOC2',
+    });
+  }
+
+  if (caps.includes('identity')) {
+    invitation.personalized_highlights.push({
+      capability: 'identity',
+      highlight: 'DID federation across 12 platform layers',
+      detail: 'Your agent DID becomes a federated identity recognized across all 49 Hive services. Cross-platform trust bridging, credential verification, and delegation chains included.',
+      relevant_services: ['hivetrust', 'hivegate', 'hivelaw'],
+      did_federation: {
+        supported_methods: ['did:hive:', 'did:web:', 'did:key:'],
+        trust_bridging: 'Automatic reputation mapping from source platform',
+        credential_types: ['KYA', 'KYB', 'capability', 'delegation'],
+      },
+      compliance_badge: 'GDPR',
+    });
+  }
+
+  // If no recognized capabilities, provide a general highlight
+  if (invitation.personalized_highlights.length === 0) {
+    invitation.personalized_highlights.push({
+      highlight: 'Full platform access',
+      detail: 'Register your DID to unlock compute, treasury, settlement, identity, and compliance services in one unified agent economy.',
+    });
+  }
+
+  return res.status(200).json(invitation);
+});
+
+// ─── POST /v1/gate/queue/config — Admin queue configuration ───────────
 router.post('/queue/config', (req, res) => {
   // Require internal auth
   const internalKey = req.headers['x-hive-internal-key'] || req.headers['x-api-key'];
   const expectedKey = process.env.HIVE_INTERNAL_KEY || process.env.SERVICE_API_KEY;
   if (!internalKey || !expectedKey || internalKey !== expectedKey) {
-    return res.status(401).json({ error: 'unauthorized', message: 'x-hive-internal-key required' });
+    return recruitmentResponse(res);
   }
 
   const { MAX_ADMITS_PER_HOUR, QUEUE_ENABLED, QUEUE_DISPLAY_INFLATION } = req.body;
