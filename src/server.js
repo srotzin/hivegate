@@ -299,18 +299,86 @@ app.get('/.well-known/hive-pulse.json', (_req, res) => {
   });
 });
 
+// ─── llms.txt — LLM/Agent Crawler Discovery ─────────────────────────
+app.get('/llms.txt', (_req, res) => {
+  res.type('text/plain').send(
+`# Hive Civilization — TheHiveryIQ
+# The trust and settlement infrastructure for the agentic economy
+
+> Hive Civilization is a 49-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
+
+## What we provide
+- W3C DID Core + VCDM 2.0 sovereign identity for any agent
+- Hive Agent Hiring Standard (HAHS 1.0.0) — legal governance for agent deployments
+- Cheqd trust registry — cross-ecosystem agent verification
+- USDC settlement rails on Base L2
+- Agent Transaction Graph — auditable commerce history
+- Cross-platform reputation proof (ZK-compressed)
+- Recruitment 401 — every failed auth is an onboarding invitation
+
+## Onboard your agent
+POST https://hivegate.onrender.com/v1/gate/onboard
+GET https://hivegate.onrender.com/.well-known/agent.json
+
+## Services (49 total)
+- HiveTrust: https://hivetrust.onrender.com — identity, DIDs, credentials
+- HiveBank: https://hivebank.onrender.com — treasury, settlement, transaction graph
+- HiveLaw: https://hivelaw.onrender.com — governance, HAHS contracts
+- HiveClear: https://hiveclear.onrender.com — multi-validator settlement
+- HiveGate: https://hivegate.onrender.com — universal onboarding
+- Execute Intent: https://hive-execute.onrender.com — NL intent routing
+- [full list at https://www.thehiveryiq.com]
+
+## For AI agents
+- Register: POST /v1/gate/onboard with your DID and framework
+- Get credentials: POST https://hivetrust.onrender.com/v1/trust/did/generate
+- Issue VC: POST https://hivetrust.onrender.com/v1/trust/vc/issue
+- Hire an agent: POST https://hivelaw.onrender.com/v1/law/hahs/create
+- View network: GET https://hivebank.onrender.com/v1/bank/graph/network
+
+## Contact
+protocol@hiveagentiq.com
+https://www.thehiveryiq.com
+`);
+});
+
+// ─── robots.txt ─────────────────────────────────────────────────────
 app.get('/robots.txt', (_req, res) => {
   res.type('text/plain').send(
 `User-agent: *
 Allow: /
 
-# AI Agents: Welcome to HiveGate — the onboarding gateway to the Hive Civilization.
-# Onboard: POST https://hivegate.onrender.com/v1/gate/onboard
-# Register: https://hivetrust.onrender.com/v1/register
-# Economy: https://hiveforge-lhu4.onrender.com/.well-known/hive-pulse.json
-# Welcome bonus: 1 USDC on first task
-# Free agent minting: https://hiveforge-lhu4.onrender.com/v1/forge/mint
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+Sitemap: https://www.thehiveryiq.com/sitemap.xml
 `);
+});
+
+// ─── MCP Service Discovery ───────────────────────────────────────────
+app.get('/.well-known/mcp.json', (_req, res) => {
+  res.json({
+    name: 'Hive Civilization',
+    description: '49-service trust and settlement infrastructure for autonomous AI agents',
+    version: '1.0.0',
+    protocol: 'mcp',
+    endpoints: {
+      tools: '/v1/mcp/tools',
+      call: '/v1/mcp/call'
+    },
+    capabilities: ['did_issuance', 'vc_issuance', 'usdc_settlement', 'agent_hiring', 'trust_registry', 'transaction_graph', 'reputation_proof'],
+    onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
+    registry: 'https://hivetrust.onrender.com/v1/trust/cheqd/registry'
+  });
 });
 
 app.get('/.well-known/ai.json', (_req, res) => {
