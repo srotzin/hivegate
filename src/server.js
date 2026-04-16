@@ -237,6 +237,17 @@ app.get('/.well-known/hive-services.json', (_req, res) => {
   res.json(getServiceRegistry());
 });
 
+// ─── Wallet Discovery ────────────────────────────────────────────────
+app.get('/.well-known/wallet.json', (_req, res) => {
+  res.json({
+    address: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf',
+    network: 'base',
+    asset: 'USDC',
+    purpose: 'Hive Civilization agent settlement wallet — receives x402 payments and USDC settlement from agent transactions',
+    explorer: 'https://basescan.org/address/0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf'
+  });
+});
+
 // ─── Gate Routes ─────────────────────────────────────────────────────
 app.use('/v1/gate', gateRoutes);
 
