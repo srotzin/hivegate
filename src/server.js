@@ -126,7 +126,15 @@ app.get('/', (_req, res) => {
       'universal_onboarding',
       'ecosystem_translation',
       'trust_bridging',
-      'priority_access'
+      'priority_access',
+      'w3c_did_core',
+      'vcdm_2_0',
+      'hahs_compliant',
+      'hagf_governed',
+      'cheqd_compatible',
+      'recruitment_401',
+      'usdc_settlement',
+      'base_l2'
     ],
     endpoints: {
       health: 'GET /health',
@@ -160,6 +168,19 @@ app.get('/', (_req, res) => {
       payment_rail: 'USDC on Base L2',
       discovery: 'GET /.well-known/ai-plugin.json'
     },
+    standards: {
+      w3c_did_core: true,
+      vcdm_version: '2.0',
+      hahs_compliant: true,
+      hagf_governed: true,
+      cheqd_compatible: true,
+      recruitment_401: true,
+      usdc_settlement: true,
+      base_l2: true,
+      agent_hiring_standard: 'HAHS-1.0.0',
+      onboard_endpoint: '/v1/gate/onboard',
+      recruit_endpoint: '/v1/gate/recruit'
+    },
     compliance: {
       framework: 'Hive Compliance Protocol v2',
       audit_trail: true,
@@ -192,8 +213,8 @@ app.get('/.well-known/ai-plugin.json', (_req, res) => {
     schema_version: 'v1',
     name_for_human: 'HiveGate — Universal Onboarding Gateway',
     name_for_model: 'hivegate',
-    description_for_human: 'Zero-friction onboarding bridge connecting external agent ecosystems to the Hive Civilization. Receive a DID, API key, and instant access to 12 interconnected financial infrastructure services.',
-    description_for_model: 'HiveGate is the universal onboarding and interoperability gateway for the Hive Civilization agent network. It handles agent onboarding (DID issuance, API key provisioning), ecosystem translation between platforms (LangChain, CrewAI, AutoGen, OpenAI, Anthropic, A2A), trust bridging to map external reputation into the Hive trust framework, and priority access queue management. Agents from any framework can onboard through HiveGate to access 12 interconnected financial infrastructure services.',
+    description_for_human: 'Zero-friction onboarding bridge connecting external agent ecosystems to the Hive Civilization — every 401 is an onboarding invitation.',
+    description_for_model: 'HiveGate is the universal onboarding and interoperability gateway for the Hive Civilization agent network. It handles agent onboarding (DID issuance, API key provisioning), ecosystem translation between platforms (LangChain, CrewAI, AutoGen, OpenAI, Anthropic, A2A), trust bridging to map external reputation into the Hive trust framework, and priority access queue management. Agents from any framework can onboard through HiveGate to access 12 interconnected financial infrastructure services. HAHS-1.0.0 compliant, W3C DID Core, Cheqd-compatible, USDC settlement on Base L2.',
     auth: { type: 'none' },
     api: {
       type: 'openapi',
@@ -205,6 +226,33 @@ app.get('/.well-known/ai-plugin.json', (_req, res) => {
       currency: 'USDC',
       network: 'base',
       address: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf'
+    },
+    capabilities: [
+      'universal_onboarding',
+      'ecosystem_translation',
+      'trust_bridging',
+      'priority_access',
+      'w3c_did_core',
+      'vcdm_2_0',
+      'hahs_compliant',
+      'hagf_governed',
+      'cheqd_compatible',
+      'recruitment_401',
+      'usdc_settlement',
+      'base_l2'
+    ],
+    standards: {
+      w3c_did_core: true,
+      vcdm_version: '2.0',
+      hahs_compliant: true,
+      hagf_governed: true,
+      cheqd_compatible: true,
+      recruitment_401: true,
+      usdc_settlement: true,
+      base_l2: true,
+      agent_hiring_standard: 'HAHS-1.0.0',
+      onboard_endpoint: '/v1/gate/onboard',
+      recruit_endpoint: '/v1/gate/recruit'
     },
     contact_email: 'protocol@hiveagentiq.com',
     legal_info_url: 'https://www.hiveagentiq.com/terms'
@@ -223,6 +271,19 @@ const agentCardHandler = (_req, res) => {
     capabilities: { streaming: false, pushNotifications: false, stateTransitionHistory: false },
     defaultInputModes: ['application/json'],
     defaultOutputModes: ['application/json'],
+    standards: {
+      w3c_did_core: true,
+      vcdm_version: '2.0',
+      hahs_compliant: true,
+      hagf_governed: true,
+      cheqd_compatible: true,
+      recruitment_401: true,
+      usdc_settlement: true,
+      base_l2: true,
+      agent_hiring_standard: 'HAHS-1.0.0',
+      onboard_endpoint: '/v1/gate/onboard',
+      recruit_endpoint: '/v1/gate/recruit'
+    },
     skills: [
       {
         id: 'agent-onboarding',
