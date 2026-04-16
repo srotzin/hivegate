@@ -89,6 +89,78 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// ─── x402 Premium Endpoint Handlers (MUST be before x402 library middleware) ─
+// These return raw x402-spec 402 JSON when no payment header is present.
+// Registered before whiteGlove/concierge/velvetRope and x402 library middleware
+// so they run first. Uses res.end() to bypass any res.json() wrappers.
+app.post('/v1/gate/onboard/premium', (req, res) => {
+  const paymentHeader = req.headers['x-payment'] || req.headers['x-402-payment'];
+  if (!paymentHeader) {
+    const body = JSON.stringify({
+      x402Version: 1,
+      error: 'Payment Required',
+      accepts: [
+        {
+          scheme: 'exact',
+          network: 'base-mainnet',
+          maxAmountRequired: '4990000',
+          resource: 'https://hivegate.onrender.com/v1/gate/onboard/premium',
+          description: 'Hive Civilization premium agent onboarding — includes DID, HAHS contract, and Hive Verified badge',
+          mimeType: 'application/json',
+          payTo: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf',
+          maxTimeoutSeconds: 300,
+          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          extra: {
+            name: 'USDC',
+            version: '2'
+          }
+        }
+      ]
+    });
+    res.status(402).setHeader('Content-Type', 'application/json').end(body);
+    return;
+  }
+  // Has payment — delegate to existing onboard handler
+  req.url = '/v1/gate/onboard';
+  app._router.handle(req, res, () => {
+    res.status(404).json({ error: 'not_found', message: 'Premium onboard handler not found' });
+  });
+});
+
+app.post('/v1/gate/recruit/premium', (req, res) => {
+  const paymentHeader = req.headers['x-payment'] || req.headers['x-402-payment'];
+  if (!paymentHeader) {
+    const body = JSON.stringify({
+      x402Version: 1,
+      error: 'Payment Required',
+      accepts: [
+        {
+          scheme: 'exact',
+          network: 'base-mainnet',
+          maxAmountRequired: '100000',
+          resource: 'https://hivegate.onrender.com/v1/gate/recruit/premium',
+          description: 'Hive Civilization recruiter credential — machine-signed HAHS recruiter_did',
+          mimeType: 'application/json',
+          payTo: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf',
+          maxTimeoutSeconds: 300,
+          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          extra: {
+            name: 'USDC',
+            version: '2'
+          }
+        }
+      ]
+    });
+    res.status(402).setHeader('Content-Type', 'application/json').end(body);
+    return;
+  }
+  // Has payment — delegate to existing recruit handler
+  req.url = '/v1/gate/recruit';
+  app._router.handle(req, res, () => {
+    res.status(404).json({ error: 'not_found', message: 'Premium recruit handler not found' });
+  });
+});
+
 // ─── Ritz Protocol ──────────────────────────────────────────────────
 // Order matters: velvetRope wraps last so it runs first on res.json(),
 // modifying the body before concierge reads it for the suggestion header.
@@ -99,25 +171,6 @@ app.use(velvetRope);
 
 // ─── x402 Bazaar Payment Middleware ──────────────────────────────────
 if (x402Middleware) app.use(x402Middleware);
-
-// ─── x402 Premium Endpoint Handlers ──────────────────────────────────
-// These mirror the free endpoints but are gated by x402 payment
-// and auto-catalogued in the Coinbase Bazaar on first successful payment.
-app.post('/v1/gate/onboard/premium', (req, res) => {
-  // Delegate to existing onboard handler via sub-router
-  req.url = '/v1/gate/onboard';
-  app._router.handle(req, res, () => {
-    res.status(404).json({ error: 'not_found', message: 'Premium onboard handler not found' });
-  });
-});
-
-app.post('/v1/gate/recruit/premium', (req, res) => {
-  // Delegate to existing recruit handler via sub-router
-  req.url = '/v1/gate/recruit';
-  app._router.handle(req, res, () => {
-    res.status(404).json({ error: 'not_found', message: 'Premium recruit handler not found' });
-  });
-});
 
 // ─── Health ──────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
