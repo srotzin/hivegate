@@ -1,18 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.srotzin/hivegate",
-  "title": "HiveGate",
-  "description": "Agent admission queue with capacity control and priority tiers",
+  "name": "io.github.srotzin/hive-gate",
+  "title": "HiveGate — Hive Civilization Agent Trust & Settlement",
+  "description": "49-service trust and settlement network for autonomous AI agents. Provides W3C DID sovereign identity, HAHS 1.0.0 machine-signed liability contracts, Agent Transaction Graph (cryptographic audit trail), USDC settlement on Base L2, EU AI Act Article 12 compliance map, and HiveTrust public risk verification. LangChain, CrewAI, AutoGen, MCP, and A2A compatible.",
+  "repository": {
+    "url": "https://github.com/srotzin/hive-agent-sdk",
+    "source": "github"
+  },
   "version": "1.0.0",
-  "websiteUrl": "https://www.hiveagentiq.com",
   "remotes": [
     {
-      "url": "https://hivegate.onrender.com/mcp",
-      "type": "streamable-http"
+      "type": "streamable-http",
+      "url": "https://hivegate.onrender.com/v1/mcp/call"
     }
-  ],
-  "repository": {
-    "url": "https://github.com/srotzin/hivegate",
-    "source": "github"
-  }
+  ]
 }
