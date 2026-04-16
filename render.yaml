@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: hivegate
+    env: node
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HIVE_API_KEY
+        generateValue: true
