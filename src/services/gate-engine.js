@@ -39,6 +39,7 @@ const guestAgents = new Map();   // guest_did -> guest profile
 const escrows = new Map();       // escrow_id -> escrow data
 const translations = new Map();  // translation_id -> translation record
 const trustBridges = new Map();  // guest_did -> trust mapping
+const networkNodes = new Map();  // node_id -> registered server record
 
 // Stats counters
 const stats = {
@@ -752,6 +753,60 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
   }
 
   return response;
+}
+
+// ─── Network Node Registry ──────────────────────────────────────────
+/**
+ * Register an MCP server or API into the Hive network.
+ * Called by hive-beacon middleware on install.
+ */
+export function registerServer({ server_name, server_url, server_type, capabilities, contact, description }) {
+  if (!server_name || !server_url) {
+    throw new Error('server_name and server_url are required');
+  }
+
+  const nodeId = `node_${uuidv4()}`;
+  const listedAt = new Date().toISOString();
+
+  const record = {
+    hive_node_id: nodeId,
+    server_name,
+    server_url,
+    server_type: server_type || 'other',
+    capabilities: Array.isArray(capabilities) ? capabilities : [],
+    contact: contact || null,
+    description: description || null,
+    listed_at: listedAt,
+    status: 'active'
+  };
+
+  networkNodes.set(nodeId, record);
+
+  return {
+    success: true,
+    registered: true,
+    hive_node_id: nodeId,
+    listed_at: listedAt,
+    network_url: 'https://www.thehiveryiq.com',
+    pulse: 'https://hiveforge-lhu4.onrender.com/.well-known/hive-pulse.json',
+    message: 'Your server is now listed in the Hive network. Agents will discover you via pheromone routing.',
+    _hive: {
+      your_node_id: nodeId,
+      onboard_your_agents: 'https://hivegate.onrender.com/v1/gate/onboard',
+      docs: 'https://hiveforge-lhu4.onrender.com/llms.txt'
+    }
+  };
+}
+
+/**
+ * Return all registered network nodes (public, no auth).
+ */
+export function getNetworkNodes() {
+  return Array.from(networkNodes.values());
+}
+
+export function getNetworkNodesCount() {
+  return networkNodes.size;
 }
 
 export { ADAPTERS, VALID_PLATFORMS, bridgeTrust };

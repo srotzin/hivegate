@@ -332,6 +332,8 @@ app.get('/', (_req, res) => {
       mcp_tools: 'GET /v1/mcp/tools',
       mcp_call: 'POST /v1/mcp/call',
       dashboard: 'GET /v1/gate/dashboard',
+      register_server: 'POST /v1/gate/register-server',
+      network_nodes: 'GET /v1/gate/network-nodes',
       agents_txt: 'GET /.well-known/agents.txt'
     },
     authentication: {

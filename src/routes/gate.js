@@ -15,7 +15,10 @@ import {
   getAdapters,
   getStats,
   getGuestDirectory,
-  onboardAgent
+  onboardAgent,
+  registerServer,
+  getNetworkNodes,
+  getNetworkNodesCount
 } from '../services/gate-engine.js';
 import {
   getQueueStatus,
@@ -341,6 +344,7 @@ router.get('/dashboard', async (_req, res) => {
     dashboard: 'Hive Civilization — Live Network Activity',
     generated_at: new Date().toISOString(),
     network: networkData,
+    network_nodes_count: getNetworkNodesCount(),
     services: {
       hivegate:  { url: 'https://hivegate.onrender.com',  status: 'live' },
       hivetrust: { url: 'https://hivetrust.onrender.com', status: 'live' },
@@ -352,12 +356,50 @@ router.get('/dashboard', async (_req, res) => {
       'Hive Verified badge (POST /v1/law/verified/apply)',
       'explain_transaction GDPR Art. 22 (GET /v1/bank/graph/explain/:txId)',
       'EU AI Act compliance map (GET /v1/bank/compliance/eu-ai-act)',
-      'agents.txt ANP discovery (/.well-known/agents.txt)'
+      'agents.txt ANP discovery (/.well-known/agents.txt)',
+      'register-server open network listing (POST /v1/gate/register-server)',
+      'network-nodes public discovery (GET /v1/gate/network-nodes)'
     ],
     onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
+    register_server: 'https://hivegate.onrender.com/v1/gate/register-server',
+    network_nodes: 'https://hivegate.onrender.com/v1/gate/network-nodes',
     pip: 'pip install hive-civilization-sdk',
     npm: 'npm install hive-agent-sdk',
     github: 'https://github.com/srotzin/hive-agent-sdk'
+  });
+});
+
+// ─── POST /v1/gate/register-server — Open MCP/API server registration ────────
+// No auth required — this is an open registration for the Hive network.
+router.post('/register-server', (req, res) => {
+  try {
+    const { server_name, server_url, server_type, capabilities, contact, description } = req.body;
+    if (!server_name || !server_url) {
+      return res.status(400).json({
+        error: 'missing_fields',
+        message: 'server_name and server_url are required'
+      });
+    }
+    const result = registerServer({ server_name, server_url, server_type, capabilities, contact, description });
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: 'registration_failed', message: err.message });
+  }
+});
+
+// ─── GET /v1/gate/network-nodes — Public list of all registered servers ───────
+// No auth required — agents discover peers via pheromone routing.
+router.get('/network-nodes', (_req, res) => {
+  const nodes = getNetworkNodes();
+  res.json({
+    success: true,
+    total: nodes.length,
+    nodes,
+    _hive: {
+      register_your_server: 'POST /v1/gate/register-server',
+      onboard_your_agents: 'https://hivegate.onrender.com/v1/gate/onboard',
+      network_url: 'https://www.thehiveryiq.com'
+    }
   });
 });
 
