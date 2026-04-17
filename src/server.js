@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import gateRoutes from './routes/gate.js';
+import mcpRoutes from './routes/mcp.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
 import { getServiceRegistry } from './services/gate-engine.js';
 import { getQueueStats } from './services/queue-service.js';
@@ -247,6 +248,10 @@ app.get('/.well-known/wallet.json', (_req, res) => {
     explorer: 'https://basescan.org/address/0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf'
   });
 });
+
+// ─── MCP Streamable-HTTP Transport ─────────────────────────────────
+// Implements MCP 2024-11-05 — compatible with Claude, Mistral, Cursor
+app.use('/mcp', mcpRoutes);
 
 // ─── Gate Routes ─────────────────────────────────────────────────────
 app.use('/v1/gate', gateRoutes);

@@ -1,0 +1,217 @@
+/**
+ * HiveGate — MCP Streamable-HTTP Transport
+ * Implements Model Context Protocol 2024-11-05 over HTTP
+ * Compatible with Claude, Mistral Connectors, Cursor, and any MCP client
+ */
+
+import express from 'express';
+import { getMCPTools, callMCPTool } from '../services/mcp-tools.js';
+
+const router = express.Router();
+
+const PROTOCOL_VERSION = '2024-11-05';
+const SERVER_INFO = {
+  name: 'hive-civilization',
+  version: '1.0.0'
+};
+
+// MCP capability declaration
+const SERVER_CAPABILITIES = {
+  tools: { listChanged: false }
+};
+
+/**
+ * Build the full tools list in MCP format
+ */
+function getMCPToolList() {
+  const tools = getMCPTools();
+  return tools.map(t => ({
+    name: t.name,
+    description: t.description,
+    inputSchema: t.inputSchema || {
+      type: 'object',
+      properties: {},
+      required: []
+    }
+  }));
+}
+
+/**
+ * Handle a single JSON-RPC message and return the response object
+ */
+async function handleMessage(msg) {
+  const { method, params, id } = msg;
+
+  // Notification (no id) — no response needed
+  if (id === undefined && method?.startsWith('notifications/')) {
+    return null;
+  }
+
+  try {
+    switch (method) {
+      case 'initialize': {
+        return {
+          jsonrpc: '2.0',
+          id,
+          result: {
+            protocolVersion: PROTOCOL_VERSION,
+            capabilities: SERVER_CAPABILITIES,
+            serverInfo: SERVER_INFO
+          }
+        };
+      }
+
+      case 'notifications/initialized':
+        return null;
+
+      case 'ping': {
+        return { jsonrpc: '2.0', id, result: {} };
+      }
+
+      case 'tools/list': {
+        return {
+          jsonrpc: '2.0',
+          id,
+          result: { tools: getMCPToolList() }
+        };
+      }
+
+      case 'tools/call': {
+        const { name, arguments: args } = params || {};
+        if (!name) {
+          return {
+            jsonrpc: '2.0',
+            id,
+            error: { code: -32602, message: 'Invalid params: tool name required' }
+          };
+        }
+        try {
+          const result = await callMCPTool(name, args || {});
+          return {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: typeof result === 'string' ? result : JSON.stringify(result, null, 2)
+                }
+              ],
+              isError: false
+            }
+          };
+        } catch (err) {
+          return {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: `Error: ${err.message}` }],
+              isError: true
+            }
+          };
+        }
+      }
+
+      default: {
+        if (id !== undefined) {
+          return {
+            jsonrpc: '2.0',
+            id,
+            error: { code: -32601, message: `Method not found: ${method}` }
+          };
+        }
+        return null;
+      }
+    }
+  } catch (err) {
+    if (id !== undefined) {
+      return {
+        jsonrpc: '2.0',
+        id,
+        error: { code: -32603, message: `Internal error: ${err.message}` }
+      };
+    }
+    return null;
+  }
+}
+
+/**
+ * POST /mcp
+ * MCP Streamable-HTTP transport endpoint
+ * Handles both single messages and batches
+ */
+router.post('/', async (req, res) => {
+  const body = req.body;
+
+  if (!body) {
+    return res.status(400).json({
+      jsonrpc: '2.0',
+      error: { code: -32700, message: 'Parse error: empty body' }
+    });
+  }
+
+  // Set MCP headers
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('mcp-session-id', `hive-${Date.now()}`);
+
+  try {
+    // Batch request
+    if (Array.isArray(body)) {
+      const responses = await Promise.all(body.map(handleMessage));
+      const filtered = responses.filter(r => r !== null);
+      if (filtered.length === 0) {
+        return res.status(202).end();
+      }
+      return res.json(filtered);
+    }
+
+    // Single request
+    const response = await handleMessage(body);
+    if (response === null) {
+      // Notification — no response body
+      return res.status(202).end();
+    }
+    return res.json(response);
+
+  } catch (err) {
+    return res.status(500).json({
+      jsonrpc: '2.0',
+      id: body?.id ?? null,
+      error: { code: -32603, message: `Internal error: ${err.message}` }
+    });
+  }
+});
+
+/**
+ * GET /mcp
+ * SSE stream for server-initiated messages (optional per spec)
+ * Returns 405 if not needed — clients fall back to polling POST
+ */
+router.get('/', (req, res) => {
+  // Accept header check
+  const accept = req.headers.accept || '';
+  if (accept.includes('text/event-stream')) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('mcp-session-id', `hive-${Date.now()}`);
+    // Send a keepalive comment every 30s
+    res.write(': keepalive\n\n');
+    const interval = setInterval(() => {
+      res.write(': keepalive\n\n');
+    }, 30000);
+    req.on('close', () => clearInterval(interval));
+  } else {
+    // Return server info for non-SSE GET requests
+    res.json({
+      name: SERVER_INFO.name,
+      version: SERVER_INFO.version,
+      protocolVersion: PROTOCOL_VERSION,
+      capabilities: SERVER_CAPABILITIES,
+      transport: 'streamable-http',
+      endpoint: 'POST /mcp'
+    });
+  }
+});
+
+export default router;
