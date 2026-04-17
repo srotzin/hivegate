@@ -15,6 +15,8 @@ const app = express();
 const HIVE_WALLET = '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf';
 let x402Middleware = null;
 try {
+  // x402 v2 API changed — disabled until updated
+  throw new Error('x402 v2 integration pending update');
   const { paymentMiddleware } = await import('@x402/express');
   const { declareDiscoveryExtension, bazaarResourceServerExtension } = await import('@x402/extensions/bazaar');
 
