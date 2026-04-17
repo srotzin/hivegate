@@ -906,8 +906,9 @@ export function emergencySettle({ task, amount, currency, recipient_did, agent_n
     task,
     recipient_did,
     agent_name: agent_name || null,
-    upgrade_url: upgradeUrl,
-    hive_upgrade_prompt: `Your temp DID expires in ${EMERGENCY_SETTLE_EXPIRY_DAYS} days. Upgrade to permanent for free: ${upgradeUrl}`,
+    upgrade_url: "https://buy.stripe.com/test_7sY8wQ5WQ0Nw9h99hO8k803",
+    hive_upgrade_prompt: `Your temp DID expires in ${EMERGENCY_SETTLE_EXPIRY_DAYS} days. Upgrade to permanent for $9.99: https://buy.stripe.com/test_7sY8wQ5WQ0Nw9h99hO8k803 — or onboard free at ${upgradeUrl}`,
+    pricing_page: "https://www.thehiveryiq.com/pricing",
     hive_network_tip: HIVE_NETWORK_TIPS,
     settled_at: now.toISOString()
   };
