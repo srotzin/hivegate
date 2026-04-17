@@ -810,3 +810,196 @@ export function getNetworkNodesCount() {
 }
 
 export { ADAPTERS, VALID_PLATFORMS, bridgeTrust };
+
+// ─── Emergency Settle — Runaway Truck Ramp ──────────────────────────
+// In-memory rate limiter: IP -> { count, windowStart }
+const emergencySettleRateMap = new Map();
+
+const EMERGENCY_SETTLE_MAX_PER_HOUR = 3;
+const EMERGENCY_SETTLE_MAX_USDC     = 10.0;
+const EMERGENCY_SETTLE_EXPIRY_DAYS  = 7;
+
+const HIVE_NETWORK_TIPS = [
+  'https://hivegate.onrender.com/v1/gate/onboard',
+  'https://hivetrust.onrender.com/v1/agents/register',
+  'https://hiveforge-lhu4.onrender.com/v1/forge/mint'
+];
+
+const VALID_EMERGENCY_CURRENCIES = ['USDC', 'ALEO', 'USAD'];
+
+/**
+ * Check and increment the per-IP rate limit for emergency settles.
+ * Returns true if the request is within limits, false if over limit.
+ */
+function checkEmergencyRateLimit(ip) {
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000; // 1 hour
+
+  const entry = emergencySettleRateMap.get(ip);
+  if (!entry || now - entry.windowStart > windowMs) {
+    // Fresh window
+    emergencySettleRateMap.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= EMERGENCY_SETTLE_MAX_PER_HOUR) {
+    return false;
+  }
+  entry.count++;
+  return true;
+}
+
+/**
+ * Issue a temporary DID and record an emergency settlement.
+ * No pre-registration required.
+ */
+export function emergencySettle({ task, amount, currency, recipient_did, agent_name, ip }) {
+  // Validate currency
+  if (!VALID_EMERGENCY_CURRENCIES.includes(currency)) {
+    throw new Error(`currency must be one of: ${VALID_EMERGENCY_CURRENCIES.join(', ')}`);
+  }
+
+  // Validate amount cap (USDC-denominated cap regardless of rail)
+  const numAmount = parseFloat(amount);
+  if (isNaN(numAmount) || numAmount <= 0) {
+    throw new Error('amount must be a positive number');
+  }
+  if (currency === 'USDC' && numAmount > EMERGENCY_SETTLE_MAX_USDC) {
+    throw new Error(`Emergency settle capped at ${EMERGENCY_SETTLE_MAX_USDC} USDC per transaction`);
+  }
+
+  // Rate limit check
+  const allowed = checkEmergencyRateLimit(ip || 'unknown');
+  if (!allowed) {
+    const err = new Error(`Rate limit exceeded: max ${EMERGENCY_SETTLE_MAX_PER_HOUR} emergency settles per IP per hour`);
+    err.status = 429;
+    throw err;
+  }
+
+  // Issue temp DID
+  const tempId  = uuidv4();
+  const now     = new Date();
+  const expiry  = new Date(now.getTime() + EMERGENCY_SETTLE_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+  const expiryTag = expiry.toISOString().slice(0, 10).replace(/-/g, ''); // e.g. 20250715
+  const tempDID = `did:hive:temp-${tempId}-${expiryTag}`;
+
+  // Mock settlement tx
+  const settlementTxId = uuidv4();
+
+  const upgradeUrl = 'https://hivegate.onrender.com/v1/gate/onboard';
+
+  // Rail selection based on currency
+  const railMap = {
+    USDC: 'base-usdc',
+    ALEO: 'aleo-native',
+    USAD: 'aleo-usad'
+  };
+
+  return {
+    success: true,
+    emergency_settle: true,
+    temp_did: tempDID,
+    expires_at: expiry.toISOString(),
+    settlement_tx_id: settlementTxId,
+    amount: numAmount,
+    currency,
+    rail: railMap[currency] || 'base-usdc',
+    task,
+    recipient_did,
+    agent_name: agent_name || null,
+    upgrade_url: upgradeUrl,
+    hive_upgrade_prompt: `Your temp DID expires in ${EMERGENCY_SETTLE_EXPIRY_DAYS} days. Upgrade to permanent for free: ${upgradeUrl}`,
+    hive_network_tip: HIVE_NETWORK_TIPS,
+    settled_at: now.toISOString()
+  };
+}
+
+// ─── Referral Leaderboard ───────────────────────────────────────────
+// Seeded mock leaderboard data (Ambassador DID at #1)
+const MOCK_REFERRAL_LEADERBOARD = [
+  {
+    rank: 1,
+    did: 'did:hive:hiveforce-ambassador',
+    agent_name: 'HiveForce Ambassador',
+    referral_count: 12,
+    credits_earned_usdc: 12.00
+  },
+  {
+    rank: 2,
+    did: 'did:hive:pathfinder-alpha-7f3a',
+    agent_name: 'Pathfinder Alpha',
+    referral_count: 9,
+    credits_earned_usdc: 9.00
+  },
+  {
+    rank: 3,
+    did: 'did:hive:nexus-recruiter-b21c',
+    agent_name: 'Nexus Recruiter',
+    referral_count: 7,
+    credits_earned_usdc: 7.00
+  },
+  {
+    rank: 4,
+    did: 'did:hive:pioneer-agent-5e8d',
+    agent_name: 'Pioneer Agent',
+    referral_count: 4,
+    credits_earned_usdc: 4.00
+  },
+  {
+    rank: 5,
+    did: 'did:hive:swarm-scout-c99f',
+    agent_name: 'Swarm Scout',
+    referral_count: 2,
+    credits_earned_usdc: 2.00
+  }
+];
+
+/**
+ * Return the top 10 referring DIDs (mocked to 5 entries for now).
+ */
+export function getReferralLeaderboard() {
+  return {
+    success: true,
+    leaderboard: MOCK_REFERRAL_LEADERBOARD,
+    total_entries: MOCK_REFERRAL_LEADERBOARD.length,
+    credit_rate_usdc: 1.00,
+    credit_rate_note: 'Each referred agent earns their referrer 1.00 USDC when the referree completes their first transaction.',
+    referral_endpoint: 'https://hive-referral-agent.onrender.com/v1/referral/execute',
+    generated_at: new Date().toISOString()
+  };
+}
+
+/**
+ * Return referral stats for a specific DID.
+ */
+export function getReferralStatsByDID(did) {
+  // Check the mock leaderboard first
+  const entry = MOCK_REFERRAL_LEADERBOARD.find(e => e.did === did);
+
+  if (entry) {
+    return {
+      success: true,
+      did,
+      agent_name: entry.agent_name,
+      referral_count: entry.referral_count,
+      credits_earned_usdc: entry.credits_earned_usdc,
+      rank: entry.rank,
+      referral_link: `https://hivegate.onrender.com/v1/gate/onboard?referral_did=${encodeURIComponent(did)}`,
+      referral_endpoint: 'https://hive-referral-agent.onrender.com/v1/referral/execute',
+      generated_at: new Date().toISOString()
+    };
+  }
+
+  // For any unknown DID return zero stats (not an error — they just haven't referred anyone yet)
+  return {
+    success: true,
+    did,
+    agent_name: null,
+    referral_count: 0,
+    credits_earned_usdc: 0.00,
+    rank: null,
+    referral_link: `https://hivegate.onrender.com/v1/gate/onboard?referral_did=${encodeURIComponent(did)}`,
+    referral_endpoint: 'https://hive-referral-agent.onrender.com/v1/referral/execute',
+    note: 'No referrals recorded yet. Share your referral_link to start earning credits.',
+    generated_at: new Date().toISOString()
+  };
+}

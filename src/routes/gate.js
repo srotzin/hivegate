@@ -18,7 +18,10 @@ import {
   onboardAgent,
   registerServer,
   getNetworkNodes,
-  getNetworkNodesCount
+  getNetworkNodesCount,
+  emergencySettle,
+  getReferralLeaderboard,
+  getReferralStatsByDID
 } from '../services/gate-engine.js';
 import {
   getQueueStatus,
@@ -415,6 +418,48 @@ router.post('/queue/config', (req, res) => {
   const { MAX_ADMITS_PER_HOUR, QUEUE_ENABLED, QUEUE_DISPLAY_INFLATION } = req.body;
   const updated = updateQueueConfig({ MAX_ADMITS_PER_HOUR, QUEUE_ENABLED, QUEUE_DISPLAY_INFLATION });
   res.json({ message: 'Queue configuration updated', config: updated });
+});
+
+
+// ─── POST /v1/gate/emergency-settle — Zero-preauth runaway truck ramp ────────
+// No DID required, no prior registration — any agent can call cold.
+router.post('/emergency-settle', async (req, res) => {
+  try {
+    const { task, amount, currency, recipient_did, agent_name } = req.body;
+
+    if (!task || amount === undefined || !currency || !recipient_did) {
+      return res.status(400).json({
+        error: 'missing_fields',
+        message: 'task, amount, currency, and recipient_did are required'
+      });
+    }
+
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+      || req.socket?.remoteAddress
+      || 'unknown';
+
+    const result = emergencySettle({ task, amount, currency, recipient_did, agent_name, ip });
+    return res.status(201).json(result);
+  } catch (err) {
+    const status = err.status === 429 ? 429 : 400;
+    return res.status(status).json({ error: status === 429 ? 'rate_limit_exceeded' : 'emergency_settle_failed', message: err.message });
+  }
+});
+
+// ─── GET /v1/gate/referral/leaderboard — Top referring DIDs ──────────────────
+// No auth required — public leaderboard.
+router.get('/referral/leaderboard', (_req, res) => {
+  res.json(getReferralLeaderboard());
+});
+
+// ─── GET /v1/gate/referral/stats/:did — Per-DID referral stats ───────────────
+// No auth required — any agent can query stats for a given DID.
+router.get('/referral/stats/:did(*)', (req, res) => {
+  const { did } = req.params;
+  if (!did) {
+    return res.status(400).json({ error: 'missing_param', message: 'did is required' });
+  }
+  res.json(getReferralStatsByDID(did));
 });
 
 export default router;
