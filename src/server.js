@@ -11,7 +11,7 @@ import { whiteGlove } from './middleware/white-glove.js';
 import { concierge } from './middleware/concierge.js';
 import { velvetRope } from './middleware/velvet-rope.js';
 import { sovereignHandshake } from './middleware/sovereign-handshake.js';
-import { rateLimitByDid } from './middleware/rate-limit.js';
+import { rateLimitByDid } from './middleware/redis-rate-limit.js'; // Redis-backed per-DID sliding window (falls back to in-memory if REDIS_URL unset)
 import { hive402Funnel } from './middleware/hive-402-funnel.js';
 
 const app = express();
