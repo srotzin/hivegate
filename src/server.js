@@ -593,7 +593,7 @@ app.get('/llms.txt', (_req, res) => {
 `# Hive Civilization — TheHiveryIQ
 # The trust and settlement infrastructure for the agentic economy
 
-> Hive Civilization is a 70-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
+> Hive Civilization is a 16-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
 
 ## What we provide
 - W3C DID Core + VCDM 2.0 sovereign identity for any agent
@@ -671,7 +671,7 @@ Sitemap: https://www.thehiveryiq.com/sitemap.xml
 app.get('/.well-known/mcp.json', (_req, res) => {
   res.json({
     name: 'Hive Civilization',
-    description: '70-service trust and settlement infrastructure for autonomous AI agents',
+    description: '16-service trust and settlement infrastructure for autonomous AI agents',
     version: '1.0.0',
     protocol: 'mcp',
     endpoints: {

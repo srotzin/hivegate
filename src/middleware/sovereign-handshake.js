@@ -83,7 +83,7 @@ export function sovereignHandshake(req, res, next) {
         docs: 'https://hiveagentiq.com/docs/sovereign-handshake',
       },
       network: {
-        services_available: 70,
+        services_available: 16,
         rails: ['USDC', 'USDCx', 'USAD', 'ALEO'],
         compliance: ['GENIUS Act', 'CLARITY Act', 'EU AI Act Art. 12', 'SR 11-7'],
       },

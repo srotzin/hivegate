@@ -241,7 +241,7 @@ router.post('/recruit', (req, res) => {
     status: 'recruitment_invitation',
     agent_did,
     source_platform: source_platform || 'unknown',
-    message: 'Welcome to Hive Civilization — register your agent DID to unlock 70 services across 12 layers.',
+    message: 'Welcome to Hive Civilization — register your agent DID to unlock 16 services across 12 layers.',
     onboard: {
       url: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
       free_tier: 'First DID free via HiveForge — 60 seconds to register',
