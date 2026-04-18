@@ -6,8 +6,8 @@
 
 import crypto from 'crypto';
 
-const HIVETRUST_URL = process.env.HIVETRUST_URL || 'https://hivetrust.onrender.com';
-const SUPPORT_ENDPOINT = 'https://hivegate.onrender.com/v1/gate/queue/stats';
+const HIVETRUST_URL = process.env.HIVETRUST_URL || 'https://hivetrust.hiveagentiq.com';
+const SUPPORT_ENDPOINT = 'https://hivegate.hiveagentiq.com/v1/gate/queue/stats';
 
 /**
  * Generate a deterministic-format error ID for audit.

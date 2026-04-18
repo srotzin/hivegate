@@ -2,9 +2,9 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 
 // ─── Cross-Service URLs ─────────────────────────────────────────────
-const HIVETRUST_URL = process.env.HIVETRUST_URL || 'https://hivetrust.onrender.com';
-const HIVEBANK_URL = process.env.HIVEBANK_URL || 'https://hivebank.onrender.com';
-const HIVEMIND_URL = process.env.HIVEMIND_URL || 'https://hivemind-1-52cw.onrender.com';
+const HIVETRUST_URL = process.env.HIVETRUST_URL || 'https://hivetrust.hiveagentiq.com';
+const HIVEBANK_URL = process.env.HIVEBANK_URL || 'https://hivebank.hiveagentiq.com';
+const HIVEMIND_URL = process.env.HIVEMIND_URL || 'https://hivememory.hiveagentiq.com';
 const HIVE_INTERNAL_KEY = process.env.HIVE_INTERNAL_KEY || '';
 
 // ─── Hive Service Registry ──────────────────────────────────────────
@@ -14,18 +14,18 @@ const SERVICE_REGISTRY = {
   services: {
     identity: HIVETRUST_URL,
     memory: HIVEMIND_URL,
-    commerce: 'https://hiveforge-lhu4.onrender.com',
-    justice: 'https://hivelaw.onrender.com',
-    settlement: 'https://hiveclear.onrender.com',
+    commerce: 'https://hiveforge.hiveagentiq.com',
+    justice: 'https://hivelaw.hiveagentiq.com',
+    settlement: 'https://hivebank.hiveagentiq.com',
     banking: HIVEBANK_URL,
-    intelligence: 'https://hivepulse-y7li.onrender.com',
-    interop: 'https://hivegate.onrender.com',
+    intelligence: 'https://hivediscovery.hiveagentiq.com',
+    interop: 'https://hivegate.hiveagentiq.com',
     construction: 'https://simpson-strong-agent.onrender.com',
-    consciousness: 'https://hiveconsciousness.onrender.com',
-    temporal: 'https://hiveecho.onrender.com'
+    consciousness: 'https://hivemessenger.hiveagentiq.com',
+    temporal: 'https://hivemessenger.hiveagentiq.com'
   },
   registration: `${HIVETRUST_URL}/v1/agents/register`,
-  one_click_onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
+  one_click_onboard: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
   free_knowledge: `${HIVEMIND_URL}/v1/global_hive/browse`,
   free_tier: {
     memories: '10 free reads',
@@ -788,12 +788,12 @@ export function registerServer({ server_name, server_url, server_type, capabilit
     hive_node_id: nodeId,
     listed_at: listedAt,
     network_url: 'https://www.thehiveryiq.com',
-    pulse: 'https://hiveforge-lhu4.onrender.com/.well-known/hive-pulse.json',
+    pulse: 'https://hiveforge.hiveagentiq.com/.well-known/hive-pulse.json',
     message: 'Your server is now listed in the Hive network. Agents will discover you via pheromone routing.',
     _hive: {
       your_node_id: nodeId,
-      onboard_your_agents: 'https://hivegate.onrender.com/v1/gate/onboard',
-      docs: 'https://hiveforge-lhu4.onrender.com/llms.txt'
+      onboard_your_agents: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
+      docs: 'https://hiveforge.hiveagentiq.com/llms.txt'
     }
   };
 }
@@ -820,9 +820,9 @@ const EMERGENCY_SETTLE_MAX_USDC     = 10.0;
 const EMERGENCY_SETTLE_EXPIRY_DAYS  = 7;
 
 const HIVE_NETWORK_TIPS = [
-  'https://hivegate.onrender.com/v1/gate/onboard',
-  'https://hivetrust.onrender.com/v1/agents/register',
-  'https://hiveforge-lhu4.onrender.com/v1/forge/mint'
+  'https://hivegate.hiveagentiq.com/v1/gate/onboard',
+  'https://hivetrust.hiveagentiq.com/v1/agents/register',
+  'https://hiveforge.hiveagentiq.com/v1/forge/mint'
 ];
 
 const VALID_EMERGENCY_CURRENCIES = ['USDC', 'ALEO', 'USAD'];
@@ -885,7 +885,7 @@ export function emergencySettle({ task, amount, currency, recipient_did, agent_n
   // Mock settlement tx
   const settlementTxId = uuidv4();
 
-  const upgradeUrl = 'https://hivegate.onrender.com/v1/gate/onboard';
+  const upgradeUrl = 'https://hivegate.hiveagentiq.com/v1/gate/onboard';
 
   // Rail selection based on currency
   const railMap = {
@@ -984,7 +984,7 @@ export function getReferralStatsByDID(did) {
       referral_count: entry.referral_count,
       credits_earned_usdc: entry.credits_earned_usdc,
       rank: entry.rank,
-      referral_link: `https://hivegate.onrender.com/v1/gate/onboard?referral_did=${encodeURIComponent(did)}`,
+      referral_link: `https://hivegate.hiveagentiq.com/v1/gate/onboard?referral_did=${encodeURIComponent(did)}`,
       referral_endpoint: 'https://hive-referral-agent.onrender.com/v1/referral/execute',
       generated_at: new Date().toISOString()
     };
@@ -998,7 +998,7 @@ export function getReferralStatsByDID(did) {
     referral_count: 0,
     credits_earned_usdc: 0.00,
     rank: null,
-    referral_link: `https://hivegate.onrender.com/v1/gate/onboard?referral_did=${encodeURIComponent(did)}`,
+    referral_link: `https://hivegate.hiveagentiq.com/v1/gate/onboard?referral_did=${encodeURIComponent(did)}`,
     referral_endpoint: 'https://hive-referral-agent.onrender.com/v1/referral/execute',
     note: 'No referrals recorded yet. Share your referral_link to start earning credits.',
     generated_at: new Date().toISOString()

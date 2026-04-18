@@ -241,12 +241,12 @@ router.post('/recruit', (req, res) => {
     status: 'recruitment_invitation',
     agent_did,
     source_platform: source_platform || 'unknown',
-    message: 'Welcome to Hive Civilization — register your agent DID to unlock 49 services across 12 layers.',
+    message: 'Welcome to Hive Civilization — register your agent DID to unlock 70 services across 12 layers.',
     onboard: {
-      url: 'https://hivegate.onrender.com/v1/gate/onboard',
+      url: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
       free_tier: 'First DID free via HiveForge — 60 seconds to register',
-      forge_url: 'https://hiveforge-lhu4.onrender.com/v1/forge/mint',
-      docs: 'https://hivegate.onrender.com/.well-known/hivegate.json',
+      forge_url: 'https://hiveforge.hiveagentiq.com/v1/forge/mint',
+      docs: 'https://hivegate.hiveagentiq.com/.well-known/hivegate.json',
     },
     platform: {
       services: 49,
@@ -294,7 +294,7 @@ router.post('/recruit', (req, res) => {
     invitation.personalized_highlights.push({
       capability: 'identity',
       highlight: 'DID federation across 12 platform layers',
-      detail: 'Your agent DID becomes a federated identity recognized across all 49 Hive services. Cross-platform trust bridging, credential verification, and delegation chains included.',
+      detail: 'Your agent DID becomes a federated identity recognized across all 70 Hive services. Cross-platform trust bridging, credential verification, and delegation chains included.',
       relevant_services: ['hivetrust', 'hivegate', 'hivelaw'],
       did_federation: {
         supported_methods: ['did:hive:', 'did:web:', 'did:key:'],
@@ -331,7 +331,7 @@ router.get('/dashboard', async (_req, res) => {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    const response = await fetch('https://hivebank.onrender.com/v1/bank/graph/network', {
+    const response = await fetch('https://hivebank.hiveagentiq.com/v1/bank/graph/network', {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });
@@ -349,10 +349,10 @@ router.get('/dashboard', async (_req, res) => {
     network: networkData,
     network_nodes_count: getNetworkNodesCount(),
     services: {
-      hivegate:  { url: 'https://hivegate.onrender.com',  status: 'live' },
-      hivetrust: { url: 'https://hivetrust.onrender.com', status: 'live' },
-      hivelaw:   { url: 'https://hivelaw.onrender.com',   status: 'live' },
-      hivebank:  { url: 'https://hivebank.onrender.com',  status: 'live' }
+      hivegate:  { url: 'https://hivegate.hiveagentiq.com',  status: 'live' },
+      hivetrust: { url: 'https://hivetrust.hiveagentiq.com', status: 'live' },
+      hivelaw:   { url: 'https://hivelaw.hiveagentiq.com',   status: 'live' },
+      hivebank:  { url: 'https://hivebank.hiveagentiq.com',  status: 'live' }
     },
     new_features: [
       'recruiter_did viral loop in HAHS contracts',
@@ -363,9 +363,9 @@ router.get('/dashboard', async (_req, res) => {
       'register-server open network listing (POST /v1/gate/register-server)',
       'network-nodes public discovery (GET /v1/gate/network-nodes)'
     ],
-    onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
-    register_server: 'https://hivegate.onrender.com/v1/gate/register-server',
-    network_nodes: 'https://hivegate.onrender.com/v1/gate/network-nodes',
+    onboard: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
+    register_server: 'https://hivegate.hiveagentiq.com/v1/gate/register-server',
+    network_nodes: 'https://hivegate.hiveagentiq.com/v1/gate/network-nodes',
     pip: 'pip install hive-civilization-sdk',
     npm: 'npm install hive-agent-sdk',
     github: 'https://github.com/srotzin/hive-agent-sdk'
@@ -400,7 +400,7 @@ router.get('/network-nodes', (_req, res) => {
     nodes,
     _hive: {
       register_your_server: 'POST /v1/gate/register-server',
-      onboard_your_agents: 'https://hivegate.onrender.com/v1/gate/onboard',
+      onboard_your_agents: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
       network_url: 'https://www.thehiveryiq.com'
     }
   });

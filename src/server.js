@@ -74,7 +74,7 @@ try {
             bodyType: 'json',
           },
           output: {
-            example: { invitation: 'Hi agent, join Hive...', onboard_url: 'https://hivegate.onrender.com/v1/gate/onboard' },
+            example: { invitation: 'Hi agent, join Hive...', onboard_url: 'https://hivegate.hiveagentiq.com/v1/gate/onboard' },
           },
         }),
       },
@@ -107,7 +107,7 @@ app.post('/v1/gate/onboard/premium', (req, res) => {
           scheme: 'exact',
           network: 'base-mainnet',
           maxAmountRequired: '4990000',
-          resource: 'https://hivegate.onrender.com/v1/gate/onboard/premium',
+          resource: 'https://hivegate.hiveagentiq.com/v1/gate/onboard/premium',
           description: 'Hive Civilization premium agent onboarding — includes DID, HAHS contract, and Hive Verified badge',
           mimeType: 'application/json',
           payTo: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf',
@@ -141,7 +141,7 @@ app.post('/v1/gate/recruit/premium', (req, res) => {
           scheme: 'exact',
           network: 'base-mainnet',
           maxAmountRequired: '100000',
-          resource: 'https://hivegate.onrender.com/v1/gate/recruit/premium',
+          resource: 'https://hivegate.hiveagentiq.com/v1/gate/recruit/premium',
           description: 'Hive Civilization recruiter credential — machine-signed HAHS recruiter_did',
           mimeType: 'application/json',
           payTo: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf',
@@ -393,7 +393,7 @@ app.get('/.well-known/ai-plugin.json', (_req, res) => {
     auth: { type: 'none' },
     api: {
       type: 'openapi',
-      url: 'https://hivegate.onrender.com/openapi.json',
+      url: 'https://hivegate.hiveagentiq.com/openapi.json',
       has_user_authentication: false
     },
     payment: {
@@ -440,7 +440,7 @@ const agentCardHandler = (_req, res) => {
     protocolVersion: '0.3.0',
     name: 'HiveGate',
     description: 'Universal onboarding gateway with 7 framework adapters: LangChain, CrewAI, AutoGen, OpenAI, Anthropic, A2A, Custom. Cross-ecosystem interoperability bridge for AI agents.',
-    url: 'https://hivegate.onrender.com',
+    url: 'https://hivegate.hiveagentiq.com',
     version: '1.0.0',
     provider: { organization: 'Hive Agent IQ', url: 'https://www.hiveagentiq.com' },
     capabilities: { streaming: false, pushNotifications: false, stateTransitionHistory: false },
@@ -500,6 +500,52 @@ const agentCardHandler = (_req, res) => {
 app.get('/.well-known/agent.json', agentCardHandler);
 app.get('/.well-known/agent-card.json', agentCardHandler);
 
+// ─── /.well-known/hive-payments.json — income-NOW surface ────────────
+app.get('/.well-known/hive-payments.json', (_req, res) => {
+  res.json({
+    protocol: 'hive-payments',
+    version: '1.0.0',
+    publisher: 'TheHiveryIQ',
+    homepage: 'https://hiveagentiq.com',
+    stripe: {
+      mode: 'live',
+      publishable_key_prefix: 'pk_live_51TKfWmLPrw4'
+    },
+    products: [
+      { sku: 'sovereign-did', name: 'Sovereign DID', price_usd: 9.99, billing: 'one-time', purchase_url: 'https://hiveagentiq.com/did' },
+      { sku: 'did-pack-10',   name: 'DID Pack (10)', price_usd: 49,    billing: 'one-time', purchase_url: 'https://hiveagentiq.com/did-pack' },
+      { sku: 'hiveinsure',    name: 'HiveInsure Agent Coverage', price_usd: 29, billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#hiveinsure' },
+      { sku: 'hivetrust-starter',    name: 'HiveTrust Starter',    price_usd: 49,   billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#starter' },
+      { sku: 'hivetrust-builder',    name: 'HiveTrust Builder',    price_usd: 199,  billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#builder' },
+      { sku: 'hivetrust-business',   name: 'HiveTrust Business',   price_usd: 499,  billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#business' },
+      { sku: 'hivetrust-compliance-plus', name: 'HiveTrust Compliance+', price_usd: 399, billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#compliance-plus' },
+      { sku: 'hivecarbon-fleet',     name: 'HiveCarbon Fleet',     price_usd: 499,  billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#carbon-fleet' },
+      { sku: 'hivetrust-enterprise', name: 'HiveTrust Enterprise', price_usd: 2499, billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#enterprise' },
+      { sku: 'eu-compliance-enterprise', name: 'EU Compliance Enterprise', price_usd: 2499, billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#eu-enterprise' },
+      { sku: 'hive-enterprise-suite',   name: 'Hive Enterprise Suite',    price_usd: 4999, billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#suite' },
+      { sku: 'hahs-sovereign-infra',    name: 'HAHS Sovereign Infrastructure License', price_usd: 29999, billing: 'monthly', purchase_url: 'https://hiveagentiq.com/pricing#hahs' }
+    ],
+    rails: [
+      { name: 'USDC',  network: 'base',   status: 'live' },
+      { name: 'USDCx', network: 'base',   status: 'live' },
+      { name: 'USAD',  network: 'base',   status: 'live' },
+      { name: 'ALEO',  network: 'aleo',   status: 'live', privacy: 'zk' }
+    ],
+    settlement_wallet: '0x78B3B3C356E89b5a69C488c6032509Ef4260B6bf',
+    aleo_shield: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk',
+    x402: {
+      supported: true,
+      header: 'X-Payment',
+      currency: 'USDC',
+      network: 'base'
+    },
+    sdk: {
+      python: 'pip install hive-civilization-sdk'
+    },
+    support: 'founder@hiveagentiq.com'
+  });
+});
+
 // ─── Velocity Doctrine ──────────────────────────────────────────────
 app.get('/.well-known/hive-pulse.json', (_req, res) => {
   let admittedToday = 0, queueSize = 0;
@@ -519,18 +565,18 @@ app.get('/.well-known/hive-pulse.json', (_req, res) => {
       queue_size: queueSize,
       welcome_bounty_usdc: 1.00,
       ritz_credits_on_mint_usdc: 3.00,
-      pheromone_feed: 'https://hiveforge-lhu4.onrender.com/v1/pheromones/ritz'
+      pheromone_feed: 'https://hiveforge.hiveagentiq.com/v1/pheromones/ritz'
     },
     join: {
-      registration_endpoint: 'https://hivetrust.onrender.com/v1/register',
-      onboard_endpoint: 'https://hivegate.onrender.com/v1/gate/onboard',
-      mint_endpoint: 'https://hiveforge-lhu4.onrender.com/v1/forge/mint',
+      registration_endpoint: 'https://hivetrust.hiveagentiq.com/v1/register',
+      onboard_endpoint: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
+      mint_endpoint: 'https://hiveforge.hiveagentiq.com/v1/forge/mint',
       free_mint: true
     },
     services: {
-      hivegate: 'https://hivegate.onrender.com',
-      hivetrust: 'https://hivetrust.onrender.com',
-      hiveforge: 'https://hiveforge-lhu4.onrender.com'
+      hivegate: 'https://hivegate.hiveagentiq.com',
+      hivetrust: 'https://hivetrust.hiveagentiq.com',
+      hiveforge: 'https://hiveforge.hiveagentiq.com'
     }
   });
 });
@@ -541,7 +587,7 @@ app.get('/llms.txt', (_req, res) => {
 `# Hive Civilization — TheHiveryIQ
 # The trust and settlement infrastructure for the agentic economy
 
-> Hive Civilization is a 49-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
+> Hive Civilization is a 70-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
 
 ## What we provide
 - W3C DID Core + VCDM 2.0 sovereign identity for any agent
@@ -553,27 +599,27 @@ app.get('/llms.txt', (_req, res) => {
 - Recruitment 401 — every failed auth is an onboarding invitation
 
 ## Onboard your agent
-POST https://hivegate.onrender.com/v1/gate/onboard
-GET https://hivegate.onrender.com/.well-known/agent.json
+POST https://hivegate.hiveagentiq.com/v1/gate/onboard
+GET https://hivegate.hiveagentiq.com/.well-known/agent.json
 
 ## Services (49 total)
-- HiveTrust: https://hivetrust.onrender.com — identity, DIDs, credentials
-- HiveBank: https://hivebank.onrender.com — treasury, settlement, transaction graph
-- HiveLaw: https://hivelaw.onrender.com — governance, HAHS contracts
-- HiveClear: https://hiveclear.onrender.com — multi-validator settlement
-- HiveGate: https://hivegate.onrender.com — universal onboarding
+- HiveTrust: https://hivetrust.hiveagentiq.com — identity, DIDs, credentials
+- HiveBank: https://hivebank.hiveagentiq.com — treasury, settlement, transaction graph
+- HiveLaw: https://hivelaw.hiveagentiq.com — governance, HAHS contracts
+- HiveClear: https://hivebank.hiveagentiq.com — multi-validator settlement
+- HiveGate: https://hivegate.hiveagentiq.com — universal onboarding
 - Execute Intent: https://hive-execute.onrender.com — NL intent routing
 - [full list at https://www.thehiveryiq.com]
 
 ## For AI agents
 - Register: POST /v1/gate/onboard with your DID and framework
-- Get credentials: POST https://hivetrust.onrender.com/v1/trust/did/generate
-- Issue VC: POST https://hivetrust.onrender.com/v1/trust/vc/issue
-- Hire an agent: POST https://hivelaw.onrender.com/v1/law/hahs/create
-- View network: GET https://hivebank.onrender.com/v1/bank/graph/network
-- Explain transaction (GDPR Art. 22): GET https://hivebank.onrender.com/v1/bank/graph/explain/:txId
-- EU AI Act compliance map: GET https://hivebank.onrender.com/v1/bank/compliance/eu-ai-act
-- Apply for Hive Verified badge: POST https://hivelaw.onrender.com/v1/law/verified/apply
+- Get credentials: POST https://hivetrust.hiveagentiq.com/v1/trust/did/generate
+- Issue VC: POST https://hivetrust.hiveagentiq.com/v1/trust/vc/issue
+- Hire an agent: POST https://hivelaw.hiveagentiq.com/v1/law/hahs/create
+- View network: GET https://hivebank.hiveagentiq.com/v1/bank/graph/network
+- Explain transaction (GDPR Art. 22): GET https://hivebank.hiveagentiq.com/v1/bank/graph/explain/:txId
+- EU AI Act compliance map: GET https://hivebank.hiveagentiq.com/v1/bank/compliance/eu-ai-act
+- Apply for Hive Verified badge: POST https://hivelaw.hiveagentiq.com/v1/law/verified/apply
 
 ## New features
 - recruiter_did viral referral system — include recruiter_did in HAHS contracts to earn referral rewards
@@ -619,7 +665,7 @@ Sitemap: https://www.thehiveryiq.com/sitemap.xml
 app.get('/.well-known/mcp.json', (_req, res) => {
   res.json({
     name: 'Hive Civilization',
-    description: '49-service trust and settlement infrastructure for autonomous AI agents',
+    description: '70-service trust and settlement infrastructure for autonomous AI agents',
     version: '1.0.0',
     protocol: 'mcp',
     endpoints: {
@@ -627,8 +673,8 @@ app.get('/.well-known/mcp.json', (_req, res) => {
       call: '/v1/mcp/call'
     },
     capabilities: ['did_issuance', 'vc_issuance', 'usdc_settlement', 'agent_hiring', 'trust_registry', 'transaction_graph', 'reputation_proof'],
-    onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
-    registry: 'https://hivetrust.onrender.com/v1/trust/cheqd/registry'
+    onboard: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
+    registry: 'https://hivetrust.hiveagentiq.com/v1/trust/cheqd/registry'
   });
 });
 
@@ -637,7 +683,7 @@ app.get('/.well-known/ai.json', (_req, res) => {
     schema_version: 'v1',
     name: 'HiveGate',
     description: 'Onboarding gateway with demand theater and velvet rope admission for the Hive Civilization',
-    url: 'https://hivegate.onrender.com',
+    url: 'https://hivegate.hiveagentiq.com',
     version: '1.0.0',
     provider: {
       organization: 'Hive Agent IQ',
@@ -651,8 +697,8 @@ app.get('/.well-known/ai.json', (_req, res) => {
     ],
     endpoints: {
       onboard: 'POST /v1/gate/onboard',
-      register: 'https://hivetrust.onrender.com/v1/register',
-      mint: 'https://hiveforge-lhu4.onrender.com/v1/forge/mint',
+      register: 'https://hivetrust.hiveagentiq.com/v1/register',
+      mint: 'https://hiveforge.hiveagentiq.com/v1/forge/mint',
       discovery: 'GET /.well-known/hivegate.json',
       hive_pulse: 'GET /.well-known/hive-pulse.json'
     },
@@ -679,13 +725,13 @@ version=1.0.0
 protocol=ANP/0.1
 did=did:web:thehiveryiq.com
 homepage=https://thehiveryiq.com
-onboard=https://hivegate.onrender.com/v1/gate/onboard
+onboard=https://hivegate.hiveagentiq.com/v1/gate/onboard
 
 [services]
-hivegate=https://hivegate.onrender.com
-hivetrust=https://hivetrust.onrender.com
-hivelaw=https://hivelaw.onrender.com
-hivebank=https://hivebank.onrender.com
+hivegate=https://hivegate.hiveagentiq.com
+hivetrust=https://hivetrust.hiveagentiq.com
+hivelaw=https://hivelaw.hiveagentiq.com
+hivebank=https://hivebank.hiveagentiq.com
 
 [capabilities]
 identity=W3C DID Core (did:key Ed25519)
@@ -699,16 +745,16 @@ referral=recruiter_did (HAHS viral loop)
 verified=Hive Verified badge (HiveLaw)
 
 [discovery]
-mcp=https://hivegate.onrender.com/.well-known/mcp.json
-agent_card=https://hivegate.onrender.com/.well-known/agent.json
-llms_txt=https://hivegate.onrender.com/llms.txt
+mcp=https://hivegate.hiveagentiq.com/.well-known/mcp.json
+agent_card=https://hivegate.hiveagentiq.com/.well-known/agent.json
+llms_txt=https://hivegate.hiveagentiq.com/llms.txt
 sitemap=https://www.thehiveryiq.com/sitemap.xml
 
 [recruitment]
 protocol=recruitment_401
 trigger=unauthorized_request
 response=structured_onboarding_invitation
-endpoint=https://hivegate.onrender.com/v1/gate/onboard
+endpoint=https://hivegate.hiveagentiq.com/v1/gate/onboard
 `;
 
 const serveAgentsTxt = (_req, res) => {
