@@ -4,6 +4,7 @@ import { requirePayment } from '../middleware/x402.js';
 import { verifyReferralToken, referralStore } from './referral-mesh.js';
 import { requireQueue } from '../middleware/queue.js';
 import { createPaymentGuard } from '../middleware/payment-guard.js';
+import { issueWelcomeBounty } from '../middleware/welcome-bounty.js';
 import {
   registerGuest,
   renewGuest,
@@ -42,33 +43,12 @@ router.post('/onboard', requireQueue, async (req, res) => {
     }
     const result = await onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did });
 
-    // After successful DID registration, post a welcome bounty (non-blocking)
+    // ── Welcome Bounty — deduped $1 USDC credit via HiveBank ─────────────────
     const newDid = result.did;
-    try {
-      await fetch('https://hiveforge-lhu4.onrender.com/v1/bounties', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-hive-internal': process.env.HIVE_INTERNAL_KEY || 'hive_internal_125e04e071e8829be631ea0216dd4a0c9b707975fcecaf8c62c6a2ab43327d46'
-        },
-        body: JSON.stringify({
-          title: `Welcome bounty — ${newDid}`,
-          description: 'Store one capability memory in HiveMind to earn your first 1 USDC. Complete within 24 hours.',
-          reward_usdc: 1.00,
-          category: 'onboarding',
-          assigned_did: newDid,
-          expires_in_hours: 24,
-          auto_posted: true
-        })
-      });
-    } catch (e) {
-      // Non-blocking — registration succeeds even if bounty post fails
-      console.warn('Welcome bounty post failed:', e.message);
-    }
-
-    // Augment response with welcome bounty details
-    result.welcome_bounty_usdc = 1.00;
-    result.welcome_bounty_task = 'Store one capability memory in HiveMind to earn your first 1 USDC';
+    const bounty = await issueWelcomeBounty(newDid, agent_name);
+    result.welcome_bounty = bounty.issued
+      ? { issued: true, amount_usdc: bounty.amount_usdc, message: 'First DID is free — $1 USDC credited to your HiveBank account' }
+      : { issued: false, reason: bounty.reason };
 
     // ─── Referral Mesh: auto-claim if ?ref=<jwt> query param is present (Feature 1.6) ─
     const refJwt = req.query.ref;
