@@ -3,6 +3,7 @@ import { requireDID, recruitmentResponse } from '../middleware/auth.js';
 import { requirePayment } from '../middleware/x402.js';
 import { verifyReferralToken, referralStore } from './referral-mesh.js';
 import { requireQueue } from '../middleware/queue.js';
+import { createPaymentGuard } from '../middleware/payment-guard.js';
 import {
   registerGuest,
   renewGuest,
@@ -257,7 +258,12 @@ router.get('/directory', requireDID, (req, res) => {
 });
 
 // ─── POST /v1/gate/priority-onboard — Skip the queue ($100 USDC) ────
-router.post('/priority-onboard', async (req, res) => {
+// payment-guard: replay + amount + recipient verification
+const priorityOnboardGuard = createPaymentGuard({
+  expectedAmount: 100.00,
+  expectedRecipientDid: process.env.EXPECTED_RECIPIENT_DID || 'did:hive:f150bbec-5660-413e-b305-d8d965b47845',
+});
+router.post('/priority-onboard', priorityOnboardGuard, async (req, res) => {
   try {
     const paymentHeader = req.headers['x-payment'] || req.headers['x-402-payment'];
     if (!paymentHeader) {
@@ -496,7 +502,12 @@ router.post('/queue/config', (req, res) => {
 
 // ─── POST /v1/gate/emergency-settle — Zero-preauth runaway truck ramp ────────
 // No DID required, no prior registration — any agent can call cold.
-router.post('/emergency-settle', async (req, res) => {
+// payment-guard: replay + recipient checks (no fixed expectedAmount — variable)
+const emergencySettleGuard = createPaymentGuard({
+  expectedAmount: null, // variable amount — skip amount check, enforce replay+recipient
+  expectedRecipientDid: process.env.EXPECTED_RECIPIENT_DID || 'did:hive:f150bbec-5660-413e-b305-d8d965b47845',
+});
+router.post('/emergency-settle', emergencySettleGuard, async (req, res) => {
   try {
     const { task, amount, currency, recipient_did, agent_name } = req.body;
 

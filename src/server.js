@@ -12,6 +12,7 @@ import { concierge } from './middleware/concierge.js';
 import { velvetRope } from './middleware/velvet-rope.js';
 import { sovereignHandshake } from './middleware/sovereign-handshake.js';
 import { rateLimitByDid } from './middleware/rate-limit.js';
+import { hive402Funnel } from './middleware/hive-402-funnel.js';
 
 const app = express();
 
@@ -167,6 +168,10 @@ app.post('/v1/gate/recruit/premium', (req, res) => {
     res.status(404).json({ error: 'not_found', message: 'Premium recruit handler not found' });
   });
 });
+
+// ─── 402 Funnel ──────────────────────────────────────────────────────
+// Every 402 becomes an onboarding funnel — routes agents to HiveGate onboard
+app.use(hive402Funnel('HiveGate'));
 
 // ─── Ritz Protocol ──────────────────────────────────────────────────
 // Order matters: velvetRope wraps last so it runs first on res.json(),
