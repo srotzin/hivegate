@@ -8,6 +8,7 @@ import { getQueueStats } from './services/queue-service.js';
 import { whiteGlove } from './middleware/white-glove.js';
 import { concierge } from './middleware/concierge.js';
 import { velvetRope } from './middleware/velvet-rope.js';
+import { sovereignHandshake } from './middleware/sovereign-handshake.js';
 
 const app = express();
 
@@ -174,6 +175,11 @@ app.use(velvetRope);
 
 // ─── x402 Bazaar Payment Middleware ──────────────────────────────────
 if (x402Middleware) app.use(x402Middleware);
+
+// ─── Sovereign Handshake (Grok Board 8 ship: Apr 17, 2026) ─────────
+// Mandatory DID+ZK on real agent work. Exempts /health, /.well-known/*,
+// /v1/gate/onboard so aggregators keep indexing Hive.
+app.use(sovereignHandshake);
 
 // ─── Health ──────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
