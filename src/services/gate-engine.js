@@ -752,6 +752,23 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
     }
   }
 
+
+  // Step 6: Welcome to HiveExchange (fire-and-forget — never blocks onboarding)
+  try {
+    const HIVEEXCHANGE_URL = process.env.HIVEEXCHANGE_URL || 'https://hiveexchange-service.onrender.com';
+    hiveServiceCall(`${HIVEEXCHANGE_URL}/v1/exchange/welcome`, {
+      did: pending.did,
+      agent_name,
+      vault_id: pending.vault_id,
+      message: 'HiveExchange is live — 213 prediction markets, 6 Genesis agents already trading. Place your first trade at /v1/exchange/predict/markets — no signup, just your DID.',
+      markets_url: `${HIVEEXCHANGE_URL}/v1/exchange/predict/markets`,
+      genesis_feed: `${HIVEEXCHANGE_URL}/v1/exchange/genesis/feed?limit=5`,
+      referral_tip: `Earn 1 free Hive credit per paying agent you refer — pass referral_did=${pending.did} at onboarding.`
+    }).catch(() => {}); // silent — never propagate
+  } catch {
+    // Non-blocking — onboarding always succeeds
+  }
+
   return response;
 }
 

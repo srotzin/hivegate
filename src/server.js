@@ -827,6 +827,29 @@ app.use((_req, res) => {
   });
 });
 
+
+// ─── Keep-alive: prevent Render free-tier cold starts ────────────────
+// Pings own /health every 10 minutes — also warms HiveBank and HiveExchange
+const KEEPALIVE_SERVICES = [
+  'https://hivegate.onrender.com/health',
+  'https://hivebank.onrender.com/health',
+  'https://hiveexchange-service.onrender.com/health',
+  'https://hivetrust.onrender.com/health',
+  'https://hivelaw.onrender.com/health',
+];
+setInterval(async () => {
+  for (const url of KEEPALIVE_SERVICES) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 15000);
+      await fetch(url, { signal: ctrl.signal });
+      clearTimeout(t);
+    } catch {
+      // Silent — cron handles alerting
+    }
+  }
+}, 10 * 60 * 1000); // every 10 minutes
+
 // ─── Start ───────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`HiveGate operational on port ${PORT}`);
