@@ -44,6 +44,6 @@
     "aleo_usad":   { "amounts": "private", "addresses": "private", "anonymity": "full" },
     "aleo_native": { "amounts": "private", "addresses": "private", "anonymity": "full" }
   },
-  "onboard": "POST https://hivegate.onrender.com/v1/gate/onboard",
+  "onboard": "POST https://hivegate.hiveagentiq.com/v1/gate/onboard",
   "select_rail": "Include settlement_rail in onboard body: base-usdc | aleo-usdcx | aleo-usad | aleo-native"
 }

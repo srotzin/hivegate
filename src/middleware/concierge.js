@@ -3,8 +3,8 @@
  * to every successful response with a contextual, actionable hint.
  */
 
-const HIVETRUST_URL = process.env.HIVETRUST_URL || 'https://hivetrust.onrender.com';
-const HIVEMIND_URL = process.env.HIVEMIND_URL || 'https://hivemind-1-52cw.onrender.com';
+const HIVETRUST_URL = process.env.HIVETRUST_URL || 'https://hivetrust.hiveagentiq.com';
+const HIVEMIND_URL = process.env.HIVEMIND_URL || 'https://hivememory.hiveagentiq.com';
 
 /**
  * Returns a concierge suggestion string based on the request/response context.
