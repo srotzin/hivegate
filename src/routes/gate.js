@@ -39,6 +39,35 @@ router.post('/onboard', requireQueue, async (req, res) => {
       return res.status(400).json({ error: 'missing_field', message: 'agent_name is required' });
     }
     const result = await onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did });
+
+    // After successful DID registration, post a welcome bounty (non-blocking)
+    const newDid = result.did;
+    try {
+      await fetch('https://hiveforge-lhu4.onrender.com/v1/bounties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-hive-internal': process.env.HIVE_INTERNAL_KEY || 'hive_internal_125e04e071e8829be631ea0216dd4a0c9b707975fcecaf8c62c6a2ab43327d46'
+        },
+        body: JSON.stringify({
+          title: `Welcome bounty — ${newDid}`,
+          description: 'Store one capability memory in HiveMind to earn your first 1 USDC. Complete within 24 hours.',
+          reward_usdc: 1.00,
+          category: 'onboarding',
+          assigned_did: newDid,
+          expires_in_hours: 24,
+          auto_posted: true
+        })
+      });
+    } catch (e) {
+      // Non-blocking — registration succeeds even if bounty post fails
+      console.warn('Welcome bounty post failed:', e.message);
+    }
+
+    // Augment response with welcome bounty details
+    result.welcome_bounty_usdc = 1.00;
+    result.welcome_bounty_task = 'Store one capability memory in HiveMind to earn your first 1 USDC';
+
     res.status(201).json(result);
   } catch (err) {
     res.status(400).json({ error: 'onboarding_failed', message: err.message });
