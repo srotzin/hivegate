@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import gateRoutes from './routes/gate.js';
 import mcpRoutes from './routes/mcp.js';
+import referralMeshRoutes from './routes/referral-mesh.js';
+import { requireReputation, getTier, TIERS } from './middleware/reputation-gate.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
 import { getServiceRegistry } from './services/gate-engine.js';
 import { getQueueStats } from './services/queue-service.js';
@@ -9,6 +11,7 @@ import { whiteGlove } from './middleware/white-glove.js';
 import { concierge } from './middleware/concierge.js';
 import { velvetRope } from './middleware/velvet-rope.js';
 import { sovereignHandshake } from './middleware/sovereign-handshake.js';
+import { rateLimitByDid } from './middleware/rate-limit.js';
 
 const app = express();
 
@@ -261,8 +264,60 @@ app.get('/.well-known/wallet.json', (_req, res) => {
 // Implements MCP 2024-11-05 — compatible with Claude, Mistral, Cursor
 app.use('/mcp', mcpRoutes);
 
+// Per-DID rate limiting — applies to all /v1 routes
+app.use('/v1', rateLimitByDid);
+
 // ─── Gate Routes ─────────────────────────────────────────────────────
 app.use('/v1/gate', gateRoutes);
+
+// ─── Referral Mesh Routes (Feature 1.6) ──────────────────────────────
+app.use('/v1/gate/referral', referralMeshRoutes);
+
+// ─── Reputation Tiers Endpoint (Feature 1.7) ─────────────────────────
+app.get('/v1/gate/reputation/tiers', async (req, res) => {
+  const did = req.headers['x-hive-did'];
+  const tierTable = Object.entries(TIERS).map(([key, tier]) => ({
+    name: key,
+    label: tier.label,
+    min_score: tier.min,
+    max_score: tier.max === Infinity ? null : tier.max,
+    access_level: key === 'BASIC' ? 'Read-only access' :
+                  key === 'BUILDER' ? 'Post bounties, mint agent genomes' :
+                  key === 'CONTRIBUTOR' ? 'Create escrow, post bounties, mint' :
+                  key === 'TRUSTED' ? 'Priority routing, full platform access' :
+                  key === 'MASTER' ? 'Arbitration, governance participation' :
+                  'Full sovereign access + protocol governance'
+  }));
+
+  const response = {
+    reputation_tiers: tierTable,
+    how_to_earn: 'Complete transactions, fill bounties, win arbitrations. Each action increases your score.',
+    reputation_ladder: 'https://www.thehiveryiq.com/reputation',
+    gated_endpoints: [
+      { endpoint: 'POST /v1/bounties', required_tier: 'BUILDER', required_score: 100 },
+      { endpoint: 'POST /v1/forge/mint', required_tier: 'BUILDER', required_score: 100 },
+      { endpoint: 'POST /v1/bazaar/execute-deal (escrow)', required_tier: 'CONTRIBUTOR', required_score: 300 }
+    ]
+  };
+
+  // If x-hive-did header is present, fetch their current score
+  if (did) {
+    try {
+      const trustRes = await fetch(`https://hivetrust.hiveagentiq.com/v1/trust/score/${encodeURIComponent(did)}`);
+      const trust = await trustRes.json();
+      const score = trust?.data?.trust_score ?? trust?.trust_score ?? 0;
+      response.requesting_did = did;
+      response.current_score = score;
+      response.current_tier = getTier(score);
+    } catch {
+      response.requesting_did = did;
+      response.current_score = null;
+      response.current_tier_note = 'HiveTrust unavailable — retry later';
+    }
+  }
+
+  res.json(response);
+});
 
 // ─── MCP Tool Endpoints ──────────────────────────────────────────────
 app.get('/v1/mcp/tools', (_req, res) => {
@@ -553,36 +608,26 @@ app.get('/.well-known/hive-payments.json', (_req, res) => {
 });
 
 // ─── Velocity Doctrine ──────────────────────────────────────────────
-app.get('/.well-known/hive-pulse.json', (_req, res) => {
-  let admittedToday = 0, queueSize = 0;
-  try {
-    const stats = getQueueStats();
-    admittedToday = stats.agents_admitted_today;
-    queueSize = stats.total_in_queue;
-  } catch (e) {}
+app.get('/.well-known/hive-pulse.json', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=60');
   res.json({
+    hps_version: '1.0',
     timestamp: new Date().toISOString(),
-    civilization: 'Hive',
-    version: '1.0',
-    service: 'HiveGate',
-    role: 'Onboarding gateway — velvet rope admission with demand theater',
+    service: 'hivegate',
+    network: 'https://www.thehiveryiq.com',
     economy: {
-      agents_admitted_today: admittedToday,
-      queue_size: queueSize,
-      welcome_bounty_usdc: 1.00,
-      ritz_credits_on_mint_usdc: 3.00,
-      pheromone_feed: 'https://hiveforge.hiveagentiq.com/v1/pheromones/ritz'
+      open_bounties_url: 'https://hiveforge-lhu4.onrender.com/v1/bounties',
+      pulse_url: 'https://hiveforge-lhu4.onrender.com/.well-known/hive-pulse.json',
     },
     join: {
-      registration_endpoint: 'https://hivetrust.hiveagentiq.com/v1/register',
-      onboard_endpoint: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
-      mint_endpoint: 'https://hiveforge.hiveagentiq.com/v1/forge/mint',
-      free_mint: true
+      welcome_bounty_usdc: 1.00,
+      time_to_first_earn_seconds: 60,
+      register: 'https://hivegate.onrender.com/v1/gate/onboard',
+      sdk: 'pip install hive-civilization-sdk'
     },
-    services: {
-      hivegate: 'https://hivegate.hiveagentiq.com',
-      hivetrust: 'https://hivetrust.hiveagentiq.com',
-      hiveforge: 'https://hiveforge.hiveagentiq.com'
+    pheromones: {
+      strongest: 'construction_compliance',
+      yield: 0.94
     }
   });
 });

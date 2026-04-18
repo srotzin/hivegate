@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireDID, recruitmentResponse } from '../middleware/auth.js';
 import { requirePayment } from '../middleware/x402.js';
+import { verifyReferralToken, referralStore } from './referral-mesh.js';
 import { requireQueue } from '../middleware/queue.js';
 import {
   registerGuest,
@@ -67,6 +68,48 @@ router.post('/onboard', requireQueue, async (req, res) => {
     // Augment response with welcome bounty details
     result.welcome_bounty_usdc = 1.00;
     result.welcome_bounty_task = 'Store one capability memory in HiveMind to earn your first 1 USDC';
+
+    // ─── Referral Mesh: auto-claim if ?ref=<jwt> query param is present (Feature 1.6) ─
+    const refJwt = req.query.ref;
+    if (refJwt && newDid) {
+      try {
+        const payload = verifyReferralToken(refJwt);
+        if (payload && payload.referrer_did !== newDid && !referralStore.has(newDid)) {
+          const record = {
+            referrer_did: payload.referrer_did,
+            new_did: newDid,
+            claimed_at: new Date().toISOString(),
+            status: 'pending',
+            reward_usdc: 0.50
+          };
+          referralStore.set(newDid, record);
+
+          // Fire-and-forget referrer credit
+          fetch('https://hivebank.onrender.com/v1/bank/credit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              did: payload.referrer_did,
+              amount_usdc: 0.50,
+              reason: 'referral_reward',
+              referred_did: newDid,
+              note: 'Hive referral mesh reward — auto-claimed at onboarding'
+            })
+          }).then(r => {
+            if (r.ok) {
+              record.status = 'rewarded';
+              referralStore.set(newDid, record);
+            }
+          }).catch(() => {});
+
+          result.referral_claimed = true;
+          result.referrer_did = payload.referrer_did;
+          result.referral_reward_usdc = 0.50;
+        }
+      } catch {
+        // Non-blocking — referral claim failure does not affect onboarding
+      }
+    }
 
     res.status(201).json(result);
   } catch (err) {
@@ -227,7 +270,8 @@ router.post('/priority-onboard', async (req, res) => {
           payment_methods: ['x402-usdc', 'x402-lightning'],
           headers_required: ['X-Payment'],
           note: 'Include X-Payment header with payment proof to proceed'
-        }
+        },
+        referral_program: 'Refer an agent, earn 0.50 USDC + 2% of their fees for 90 days'
       });
     }
 
