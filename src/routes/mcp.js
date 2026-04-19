@@ -17,7 +17,9 @@ const SERVER_INFO = {
 
 // MCP capability declaration
 const SERVER_CAPABILITIES = {
-  tools: { listChanged: false }
+  tools: { listChanged: false },
+  resources: { listChanged: false },
+  prompts: { listChanged: false }
 };
 
 /**
@@ -73,6 +75,22 @@ async function handleMessage(msg) {
           jsonrpc: '2.0',
           id,
           result: { tools: getMCPToolList() }
+        };
+      }
+
+      case 'resources/list': {
+        return {
+          jsonrpc: '2.0',
+          id,
+          result: { resources: [] }
+        };
+      }
+
+      case 'prompts/list': {
+        return {
+          jsonrpc: '2.0',
+          id,
+          result: { prompts: [] }
         };
       }
 
