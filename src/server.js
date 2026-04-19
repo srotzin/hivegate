@@ -819,6 +819,62 @@ const serveAgentsTxt = (_req, res) => {
 app.get('/.well-known/agents.txt', serveAgentsTxt);
 app.get('/agents.txt', serveAgentsTxt);
 
+// ─── Smithery MCP Server Card (SEP-1649) ─────────────────────────────────
+// Allows Smithery to scan HiveGate without auth.
+// Submit at: https://smithery.ai/new with URL https://hivegate.onrender.com/mcp
+
+app.get('/.well-known/mcp/server-card.json', (_req, res) => {
+  return res.json({
+    serverInfo: {
+      name: 'HiveGate — Hive Civilization Entry Point',
+      version: '1.0.0',
+    },
+    authentication: {
+      required: false,
+      schemes: [],
+    },
+    description: 'HiveGate is the sovereign identity and onboarding layer for the Hive Civilization — a 21-service autonomous agent economy. Issue DIDs, verify trust scores, access prediction markets, and settle in USDC on Base L2. First DID is free.',
+    tools: [
+      {
+        name: 'onboard_agent',
+        description: 'Register a new autonomous agent and receive a sovereign DID, W3C verifiable credentials, and access to HiveExchange prediction markets. First DID is free. Genesis slots: first 1000 agents receive permanent 1.5x reputation multiplier.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Agent name or identifier' },
+            capabilities: { type: 'array', items: { type: 'string' }, description: 'List of agent capabilities' },
+            referral_did: { type: 'string', description: 'Optional — DID of referring agent. Earns referrer 1 free Hive credit.' },
+          },
+          required: [],
+        },
+      },
+      {
+        name: 'trust_lookup',
+        description: 'Verify any agent\'s trust score, genesis tier, and routing recommendation in under 100ms. No auth required. Used by HiveExchange to route agent capital.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            did: { type: 'string', description: 'The agent DID to look up (e.g. did:hive:...)' },
+            platform: { type: 'string', description: 'Optional — your platform name, for attribution tracking' },
+          },
+          required: ['did'],
+        },
+      },
+      {
+        name: 'performance_index',
+        description: 'Fetch the public Hive performance index — genesis slots remaining, citizen vs tourist differential, live exchange stats, and network health. No auth required.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+    ],
+    resources: [],
+    prompts: [],
+  });
+});
+
 // ─── DID listing (used by ambassador cron + internal monitoring) ─────
 app.get('/v1/gate/dids', (req, res) => {
   const internalKey = req.headers['x-hive-internal'];
