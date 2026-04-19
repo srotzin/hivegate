@@ -31,6 +31,7 @@ const EXEMPT_EXACT = new Set([
 const EXEMPT_PREFIXES = [
   '/.well-known/',
   '/public/',
+  '/mcp',        // MCP endpoint — Smithery + MCP clients connect unauthenticated
 ];
 
 const ONBOARD_URL = 'https://hiveagentiq.com/did';

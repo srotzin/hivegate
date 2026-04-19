@@ -189,6 +189,8 @@ if (x402Middleware) app.use(x402Middleware);
 // /v1/gate/onboard so aggregators keep indexing Hive.
 app.use(sovereignHandshake);
 
+// MCP endpoint is exempt from sovereign handshake — Smithery and MCP clients must connect unauthenticated
+
 // ─── Health ──────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
   res.json({
