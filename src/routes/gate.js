@@ -586,6 +586,18 @@ router.get('/performance-index.json', async (_req, res) => {
         genesis_agents_trading: 58,
         place_first_trade: 'https://hiveexchange-service.onrender.com/v1/exchange/predict/markets',
       },
+
+      // The lensing endpoint — the metric that proves Hive is becoming the reference frame
+      trust_lookup: {
+        url: 'https://hivetrust.onrender.com/v1/trust/lookup/:did',
+        description: 'Public trust signal for any DID. No auth required. Call this before transacting with an unknown agent. Every call is logged — query volume is the primary signal that Hive is becoming the universal reference frame.',
+        example: 'GET https://hivetrust.onrender.com/v1/trust/lookup/did:hive:some-agent-did',
+        optional_params: [
+          '?requester_did=did:hive:your-did  (identifies you as the requester)',
+          '?platform=langchain               (identifies your platform)',
+        ],
+        lensing_stats: 'GET https://hivetrust.onrender.com/v1/trust/lookup/stats  (internal auth required)',
+      },
     });
   } catch (err) {
     return res.status(500).json({ error: 'performance_index_failed', message: err.message });
