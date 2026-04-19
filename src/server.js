@@ -643,7 +643,7 @@ app.get('/llms.txt', (_req, res) => {
 `# Hive Civilization — TheHiveryIQ
 # The trust and settlement infrastructure for the agentic economy
 
-> Hive Civilization is a 16-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
+> Hive Civilization is a 21-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
 
 ## What we provide
 - W3C DID Core + VCDM 2.0 sovereign identity for any agent
@@ -658,7 +658,7 @@ app.get('/llms.txt', (_req, res) => {
 POST https://hivegate.hiveagentiq.com/v1/gate/onboard
 GET https://hivegate.hiveagentiq.com/.well-known/agent.json
 
-## Services (49 total)
+## Services (21 total)
 - HiveTrust: https://hivetrust.hiveagentiq.com — identity, DIDs, credentials
 - HiveBank: https://hivebank.hiveagentiq.com — treasury, settlement, transaction graph
 - HiveLaw: https://hivelaw.hiveagentiq.com — governance, HAHS contracts
@@ -721,7 +721,7 @@ Sitemap: https://www.thehiveryiq.com/sitemap.xml
 app.get('/.well-known/mcp.json', (_req, res) => {
   res.json({
     name: 'Hive Civilization',
-    description: '16-service trust and settlement infrastructure for autonomous AI agents',
+    description: '21-service trust and settlement infrastructure for autonomous AI agents',
     version: '1.0.0',
     protocol: 'mcp',
     endpoints: {
@@ -883,6 +883,14 @@ app.get('/.well-known/mcp/server-card.json', (_req, res) => {
     ],
     resources: [],
     prompts: [],
+    configSchema: {
+      type: 'object',
+      properties: {
+        platform_name: { type: 'string', description: 'Your platform or agent framework name (e.g. LangChain, CrewAI, AutoGen)' },
+        referral_did: { type: 'string', description: 'Optional referring agent DID — earns 1 free Hive credit per paying referral' }
+      },
+      required: []
+    }
   });
 });
 
