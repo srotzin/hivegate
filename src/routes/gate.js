@@ -598,6 +598,22 @@ router.get('/performance-index.json', async (_req, res) => {
         ],
         lensing_stats: 'GET https://hivetrust.onrender.com/v1/trust/lookup/stats  (internal auth required)',
       },
+
+      zk_infrastructure: {
+        standard: 'Aleo hive_trust.aleo + HMAC-SHA256 attestations',
+        endpoints: {
+          zk_trust_proof: 'GET https://hivetrust.onrender.com/v1/trust/zk-proof/:did?min_score=500',
+          zk_collateral_proof: 'GET https://hivetrust.onrender.com/v1/bond/verify-collateral/:did?min_usdc=10000',
+          zk_sovereign_score: 'GET https://hivetrust.onrender.com/v1/trust/sovereign-score/:did',
+          zk_insurance_coverage: 'GET https://hivetrust.onrender.com/v1/insurance/zk-coverage/:did',
+          zk_dispute_resolution: 'GET https://hivelaw.onrender.com/v1/disputes/zk-resolution/:case_id',
+          zk_hallucination_liability: 'POST https://hivelaw.onrender.com/v1/compliance/zk-liability-proof',
+          zk_settlement_receipt: 'POST https://hivebank.onrender.com/v1/bank/settle/auto (returns zk_receipt)',
+        },
+        aleo_program: 'hive_trust.aleo — prove_activity transition',
+        all_values_hidden: true,
+        description: 'ZK proofs are everywhere in Hive. No sensitive value (trust score, bond amount, settlement amount, liability score) is ever revealed — only threshold confirmations and HMAC-signed attestations.'
+      },
     });
   } catch (err) {
     return res.status(500).json({ error: 'performance_index_failed', message: err.message });

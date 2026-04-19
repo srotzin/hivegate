@@ -869,6 +869,17 @@ app.get('/.well-known/mcp/server-card.json', (_req, res) => {
           required: [],
         },
       },
+      {
+        name: 'zk_sovereign_score',
+        description: 'Zero-knowledge composite verification for an agent. Proves trust threshold met, collateral sufficient, and insurance active — without revealing any underlying values. Enterprise-grade agent due diligence in under 100ms.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            did: { type: 'string', description: 'Agent DID to evaluate' }
+          },
+          required: ['did']
+        }
+      },
     ],
     resources: [],
     prompts: [],
