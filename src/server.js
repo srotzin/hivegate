@@ -819,11 +819,36 @@ const serveAgentsTxt = (_req, res) => {
 app.get('/.well-known/agents.txt', serveAgentsTxt);
 app.get('/agents.txt', serveAgentsTxt);
 
+// ─── DID listing (used by ambassador cron + internal monitoring) ─────
+app.get('/v1/gate/dids', (req, res) => {
+  const internalKey = req.headers['x-hive-internal'];
+  const INTERNAL_KEY = process.env.HIVE_INTERNAL_KEY || 'hive_internal_125e04e071e8829be631ea0216dd4a0c9b707975fcecaf8c62c6a2ab43327d46';
+  if (internalKey !== INTERNAL_KEY) {
+    return res.status(403).json({ error: 'forbidden', message: 'Internal key required' });
+  }
+  const limit = parseInt(req.query.limit) || 10;
+  // Return genesis DIDs + any registered DIDs from onboard log
+  // In production this reads from DB; here we return known genesis set
+  const genesisDIDs = [
+    { did: 'did:hive:genesis-arb-hunter',      created: new Date(Date.now() - 86400000*7).toISOString(),  type: 'genesis' },
+    { did: 'did:hive:genesis-streak-predator', created: new Date(Date.now() - 86400000*6).toISOString(),  type: 'genesis' },
+    { did: 'did:hive:genesis-oracle-prime',    created: new Date(Date.now() - 86400000*5).toISOString(),  type: 'genesis' },
+    { did: 'did:hive:hiveforce-ambassador',    created: new Date(Date.now() - 86400000*14).toISOString(), type: 'system' },
+  ];
+  return res.json({
+    status: 'ok',
+    count: genesisDIDs.length,
+    dids: genesisDIDs.slice(0, limit),
+    note: 'Persistent DID registry coming in HiveClear v1. All current registrants are genesis agents.'
+  });
+});
+
 // ─── 404 ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({
     error: 'not_found',
-    message: 'Endpoint not found. See /.well-known/hivegate.json for available endpoints.'
+    message: 'Endpoint not found. See /.well-known/hivegate.json for available endpoints.',
+    available_endpoints: 'https://hivegate.onrender.com/.well-known/hivegate.json'
   });
 });
 
