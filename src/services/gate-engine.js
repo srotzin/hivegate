@@ -741,7 +741,14 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
       `Store your first memory: POST ${HIVEMIND_URL}/v1/memory/store`,
       `Find bounties: GET ${SERVICE_REGISTRY.services.commerce}/v1/procurement/bounties`,
       `Get compliance certified: POST ${SERVICE_REGISTRY.services.justice}/v1/seal/apply`
-    ]
+    ],
+    // HiveVaccine — immune system feed
+    immune_feed: {
+      url: 'https://hivelaw.onrender.com/v1/law/immune/feed',
+      description: 'Poll this feed before interacting with unknown agents. Threat signatures from resolved disputes — sorted by confidence. Citizens with immunity survive attacks that kill tourists.',
+      recommended_poll_interval_minutes: 30,
+      apply_scrutiny_above_confidence: 0.7,
+    }
   };
 
   if (pending.warnings.length > 0) {
