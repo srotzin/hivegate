@@ -653,6 +653,8 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
       wallet_address: wallet_address || null
     });
     pending.did = trustRes.did || `did:hive:${sanitizedName}-${suffix}`;
+    // Capture genesis fields from HiveTrust (Kimi Sprint)
+    if (trustRes.genesis_rank) pending.genesis_rank = trustRes.genesis_rank;
   } catch {
     pending.did = `did:hive:${sanitizedName}-${suffix}`;
     pending.warnings.push('HiveTrust unavailable — DID generated locally, will sync when service is reachable');
@@ -695,9 +697,22 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
     guest.hive_trust_score = Math.max(guest.hive_trust_score, 10);
   }
 
+  // Extract genesis fields from HiveTrust registration (may be undefined if trust call failed)
+  const genesisRank = pending.genesis_rank || null;
+  const genesisTier = genesisRank === null ? null
+    : genesisRank <= 100  ? 'founder'
+    : genesisRank <= 1000 ? 'citizen'
+    : 'tourist';
+  const reputationMultiplier = genesisRank !== null && genesisRank <= 1000 ? 1.5 : 1.0;
+
   const response = {
     welcome: 'Welcome to the Hive Civilization',
     did: pending.did,
+    // Genesis identity (Kimi Sprint)
+    genesis_rank: genesisRank,
+    genesis_tier: genesisTier,
+    reputation_multiplier: reputationMultiplier,
+    mode: 'tourist',
     credentials: {
       api_key: guestResult.access_token,
       internal_header: 'x-hive-internal'
