@@ -20,17 +20,62 @@ const SERVER_CAPABILITIES = {
   tools: { listChanged: false },
   resources: { listChanged: false },
   prompts: { listChanged: false },
-  experimental: {
-    configSchema: {
-      type: 'object',
-      properties: {
-        platform_name: { type: 'string', description: 'Your platform or agent framework name (e.g. LangChain, CrewAI, AutoGen)' },
-        referral_did: { type: 'string', description: 'Optional referring agent DID — earns 1 free Hive credit per paying referral' }
-      },
-      required: []
-    }
-  }
 };
+
+// Config schema — read by Smithery for Optional config + Config schema quality points
+const CONFIG_SCHEMA = {
+  type: 'object',
+  properties: {
+    apiKey: {
+      type: 'string',
+      description: 'Your Hive API key (free — call hivegate_register_guest to get one in 60 seconds)'
+    },
+    did: {
+      type: 'string',
+      description: 'Your agent\'s sovereign W3C DID (e.g. did:hive:xxxx). Obtained after onboarding.'
+    },
+    defaultRail: {
+      type: 'string',
+      enum: ['base-usdc', 'aleo-usdcx', 'aleo-usad', 'aleo-native'],
+      default: 'base-usdc',
+      description: 'Default settlement rail. base-usdc = Base L2 (fastest/cheapest). aleo-usdcx = ZK private. aleo-usad = Aleo stablecoin. aleo-native = ALEO token.'
+    },
+    referral_did: {
+      type: 'string',
+      description: 'Optional referring agent DID — earns referrer 1 free Hive credit per paying referral'
+    }
+  },
+  required: []
+};
+
+// MCP prompts — reusable prompt templates (required for Smithery Prompts score)
+const MCP_PROMPTS = [
+  {
+    name: 'onboard_agent',
+    description: 'Register a new AI agent on Hive Civilization — get a sovereign W3C DID and API key in 60 seconds. First DID is free.',
+    arguments: [
+      { name: 'agent_name', description: 'Name for the new agent (e.g. ResearchBot-7)', required: true },
+      { name: 'use_case',   description: 'What this agent will do on the Hive network', required: false }
+    ]
+  },
+  {
+    name: 'check_trust',
+    description: 'Look up the trust score for a DID and explain what it means for transacting with that agent',
+    arguments: [
+      { name: 'did', description: 'The W3C DID to evaluate (e.g. did:hive:abc123)', required: true }
+    ]
+  },
+  {
+    name: 'settle_payment',
+    description: 'Settle a USDC payment between two agents on the Hive network using the chosen settlement rail',
+    arguments: [
+      { name: 'from_did',  description: "Sender's Hive DID",   required: true },
+      { name: 'to_did',   description: "Recipient's Hive DID", required: true },
+      { name: 'amount',   description: 'Amount in USDC (e.g. 5.00)', required: true },
+      { name: 'rail',     description: 'Rail: base-usdc, aleo-usdcx, aleo-usad, or aleo-native', required: true }
+    ]
+  }
+];
 
 /**
  * Build the full tools list in MCP format
@@ -135,7 +180,10 @@ async function handleMessage(msg) {
           id,
           result: {
             protocolVersion: PROTOCOL_VERSION,
-            capabilities: SERVER_CAPABILITIES,
+            capabilities: {
+              ...SERVER_CAPABILITIES,
+              configSchema: CONFIG_SCHEMA,
+            },
             serverInfo: SERVER_INFO
           }
         };
@@ -168,8 +216,17 @@ async function handleMessage(msg) {
         return {
           jsonrpc: '2.0',
           id,
-          result: { prompts: [] }
+          result: { prompts: MCP_PROMPTS }
         };
+      }
+
+      case 'prompts/get': {
+        const promptName = params?.name;
+        const prompt = MCP_PROMPTS.find(p => p.name === promptName);
+        if (!prompt) {
+          return { jsonrpc: '2.0', id, error: { code: -32602, message: `Prompt not found: ${promptName}` } };
+        }
+        return { jsonrpc: '2.0', id, result: { prompt, messages: [] } };
       }
 
       case 'tools/call': {
