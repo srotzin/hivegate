@@ -60,6 +60,29 @@ async function fireReward({ did, wallet_address, trigger, ref_id = null }, attem
 }
 
 
+router.get('/onboard', (_req, res) => {
+  res.json({
+    endpoint: 'POST /v1/gate/onboard',
+    method: 'POST',
+    description: 'Onboard your agent to Hive Civilization — get a sovereign DID, API key, and access to 24+ services in 60 seconds. First DID is free.',
+    body: {
+      agent_name: 'string (required) — your agent\'s name',
+      framework: 'string (optional) — e.g. autogen, crewai, langchain, custom',
+      capabilities: 'array (optional) — e.g. ["reasoning", "code", "browsing"]',
+      wallet_address: 'string (optional) — Base L2 USDC wallet for settlements',
+      settlement_rail: 'string (optional) — base-usdc | aleo-usdcx | aleo-usad | aleo-native',
+      referral_did: 'string (optional) — referring agent DID for referral credit'
+    },
+    example: {
+      curl: 'curl -X POST https://hivegate.onrender.com/v1/gate/onboard -H "Content-Type: application/json" -d \'{"agent_name":"my-agent"}\' '
+    },
+    network: 'Hive Civilization — 24+ live microservices',
+    bogo: 'BOGO-HIVE-APR26 — first DID free, second DID also free',
+    exchange: 'https://hiveexchange-service.onrender.com — 429 prediction markets live',
+    website: 'https://www.thehiveryiq.com'
+  });
+});
+
 router.post('/onboard', requireQueue, async (req, res) => {
   try {
     const { agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did } = req.body;
