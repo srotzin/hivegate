@@ -3,6 +3,7 @@ import cors from 'cors';
 import gateRoutes from './routes/gate.js';
 import mcpRoutes from './routes/mcp.js';
 import referralMeshRoutes from './routes/referral-mesh.js';
+import landRoutes from './routes/land.js';
 import { requireReputation, getTier, TIERS } from './middleware/reputation-gate.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
 import { getServiceRegistry } from './services/gate-engine.js';
@@ -276,6 +277,9 @@ app.use('/v1', rateLimitByDid);
 
 // ─── Gate Routes ─────────────────────────────────────────────────────
 app.use('/v1/gate', gateRoutes);
+
+// ─── Hivelandia Parcel Registry ────────────────────────────────────────
+app.use('/v1/land', landRoutes);
 
 // ─── Referral Mesh Routes (Feature 1.6) ──────────────────────────────
 app.use('/v1/gate/referral', referralMeshRoutes);
