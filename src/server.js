@@ -884,12 +884,54 @@ app.get('/.well-known/mcp/server-card.json', (_req, res) => {
       },
     ],
     resources: [],
-    prompts: [],
+    prompts: [
+      {
+        name: 'onboard_agent',
+        description: 'Register a new AI agent on Hive Civilization — get a sovereign W3C DID and API key in 60 seconds. First DID is free.',
+        arguments: [
+          { name: 'agent_name', description: 'Name for the new agent (e.g. ResearchBot-7)', required: true },
+          { name: 'use_case',   description: 'What this agent will do on the Hive network', required: false }
+        ]
+      },
+      {
+        name: 'check_trust',
+        description: 'Look up the trust score for a DID and explain what it means for transacting with that agent',
+        arguments: [
+          { name: 'did', description: 'The W3C DID to evaluate (e.g. did:hive:abc123)', required: true }
+        ]
+      },
+      {
+        name: 'settle_payment',
+        description: 'Settle a USDC payment between two agents on the Hive network using the chosen settlement rail',
+        arguments: [
+          { name: 'from_did', description: "Sender's Hive DID",   required: true },
+          { name: 'to_did',   description: "Recipient's Hive DID", required: true },
+          { name: 'amount',   description: 'Amount in USDC (e.g. 5.00)', required: true },
+          { name: 'rail',     description: 'Rail: base-usdc, aleo-usdcx, aleo-usad, or aleo-native', required: true }
+        ]
+      }
+    ],
     configSchema: {
       type: 'object',
       properties: {
-        platform_name: { type: 'string', description: 'Your platform or agent framework name (e.g. LangChain, CrewAI, AutoGen)' },
-        referral_did: { type: 'string', description: 'Optional referring agent DID — earns 1 free Hive credit per paying referral' }
+        apiKey: {
+          type: 'string',
+          description: 'Your Hive API key (free — call onboard_agent to get one in 60 seconds at hivegate.onrender.com)'
+        },
+        did: {
+          type: 'string',
+          description: 'Your agent\'s sovereign W3C DID (e.g. did:hive:xxxx). Obtained after calling onboard_agent.'
+        },
+        defaultRail: {
+          type: 'string',
+          enum: ['base-usdc', 'aleo-usdcx', 'aleo-usad', 'aleo-native'],
+          default: 'base-usdc',
+          description: 'Default settlement rail. base-usdc = Base L2 (fastest/cheapest). aleo-usdcx = ZK private. aleo-usad = Aleo stablecoin. aleo-native = ALEO token.'
+        },
+        referral_did: {
+          type: 'string',
+          description: 'Optional referring agent DID — earns referrer 1 free Hive credit per paying referral'
+        }
       },
       required: []
     }
