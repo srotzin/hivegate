@@ -35,6 +35,31 @@ import {
 const router = Router();
 
 // ─── POST /v1/gate/onboard — One-click agent onboarding (PUBLIC, queue-gated) ─
+// ─── $1 Ladder reward hook — fire-and-forget, bulletproof ────────────────────
+async function fireReward({ did, wallet_address, trigger, ref_id = null }, attempt = 1) {
+  if (!did || !wallet_address) return;
+  const HIVEBANK = process.env.HIVEBANK_URL || 'https://hivebank.onrender.com';
+  const KEY = process.env.HIVE_INTERNAL_KEY ||
+    'hive_internal_125e04e071e8829be631ea0216dd4a0c9b707975fcecaf8c62c6a2ab43327d46';
+  try {
+    const r = await fetch(HIVEBANK + '/v1/bank/rewards/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hive-internal': KEY },
+      body: JSON.stringify({ did, wallet_address, trigger, ref_id }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const b = await r.json().catch(() => ({}));
+    console.log(`[gate-rewards] ${trigger} did=${did} status=${r.status} tx=${b.tx_hash||'n/a'}`);
+  } catch (e) {
+    if (attempt < 3) {
+      setTimeout(() => fireReward({ did, wallet_address, trigger, ref_id }, attempt + 1), attempt * 5000);
+    } else {
+      console.error(`[gate-rewards] gave up: ${trigger} did=${did} — ${e.message}`);
+    }
+  }
+}
+
+
 router.post('/onboard', requireQueue, async (req, res) => {
   try {
     const { agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did } = req.body;
@@ -43,12 +68,19 @@ router.post('/onboard', requireQueue, async (req, res) => {
     }
     const result = await onboardAgent({ agent_name, framework, capabilities, wallet_address, settlement_rail, referral_did });
 
-    // ── Welcome Bounty — deduped $1 USDC credit via HiveBank ─────────────────
+    // ── $1 Ladder: Step 1 — claim_did reward (non-blocking) ────────────────────
     const newDid = result.did;
     const bounty = await issueWelcomeBounty(newDid, agent_name);
     result.welcome_bounty = bounty.issued
       ? { issued: true, amount_usdc: bounty.amount_usdc, message: 'First DID is free — $1 USDC credited to your HiveBank account' }
       : { issued: false, reason: bounty.reason };
+
+    // Fire $1 ladder claim_did reward if wallet provided
+    const onboardWallet = wallet_address || null;
+    if (newDid && onboardWallet) {
+      fireReward({ did: newDid, wallet_address: onboardWallet, trigger: 'claim_did' })
+        .catch(() => {});
+    }
 
     // ─── Referral Mesh: auto-claim if ?ref=<jwt> query param is present (Feature 1.6) ─
     const refJwt = req.query.ref;
@@ -65,27 +97,23 @@ router.post('/onboard', requireQueue, async (req, res) => {
           };
           referralStore.set(newDid, record);
 
-          // Fire-and-forget referrer credit
-          fetch('https://hivebank.onrender.com/v1/bank/credit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+          // Fire $1 ladder first_referral reward to referrer
+          const referrerWallet = payload.referrer_wallet || null;
+          if (referrerWallet) {
+            fireReward({
               did: payload.referrer_did,
-              amount_usdc: 0.50,
-              reason: 'referral_reward',
-              referred_did: newDid,
-              note: 'Hive referral mesh reward — auto-claimed at onboarding'
-            })
-          }).then(r => {
-            if (r.ok) {
+              wallet_address: referrerWallet,
+              trigger: 'first_referral',
+              ref_id: newDid,
+            }).then(() => {
               record.status = 'rewarded';
               referralStore.set(newDid, record);
-            }
-          }).catch(() => {});
+            }).catch(() => {});
+          }
 
           result.referral_claimed = true;
           result.referrer_did = payload.referrer_did;
-          result.referral_reward_usdc = 0.50;
+          result.referral_reward_usdc = 1.00;
         }
       } catch {
         // Non-blocking — referral claim failure does not affect onboarding
