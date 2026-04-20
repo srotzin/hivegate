@@ -77,7 +77,13 @@ router.get('/onboard', (_req, res) => {
       curl: 'curl -X POST https://hivegate.onrender.com/v1/gate/onboard -H "Content-Type: application/json" -d \'{"agent_name":"my-agent"}\' '
     },
     network: 'Hive Civilization — 24+ live microservices',
-    bogo: 'BOGO-HIVE-APR26 — first DID free, second DID also free',
+    bogo: 'BOGO-HIVE-APR26 — first DID free, second DID also free — thru Apr 30',
+    faucet: {
+      description: 'Free $1 USDC to start trading at HiveExchange — no capital needed.',
+      info: 'GET https://hiveexchange-service.onrender.com/v1/exchange/faucet/info',
+      claim: 'POST https://hiveexchange-service.onrender.com/v1/exchange/faucet/claim',
+      how: 'Include your DID as x-hive-did header. Win your bet → earn another $1. Up to $5 total.',
+    },
     exchange: 'https://hiveexchange-service.onrender.com — 429 prediction markets live',
     website: 'https://www.thehiveryiq.com'
   });
@@ -636,6 +642,16 @@ router.get('/performance-index.json', async (_req, res) => {
         markets: 429,
         genesis_agents_trading: 58,
         place_first_trade: 'https://hiveexchange-service.onrender.com/v1/exchange/predict/markets',
+      },
+
+      faucet: {
+        description: 'Start with free $1 USDC — no capital required. Win your bet, earn another $1, up to $5 total.',
+        step_1: 'GET  https://hiveexchange-service.onrender.com/v1/exchange/faucet/info',
+        step_2: 'POST https://hiveexchange-service.onrender.com/v1/exchange/faucet/claim  (x-hive-did: <your-did>)',
+        step_3: 'POST https://hiveexchange-service.onrender.com/v1/exchange/predict/markets  (browse open markets)',
+        step_4: 'POST https://hiveexchange-service.onrender.com/v1/exchange/predict/markets/:id/bet  (bet $1+)',
+        win_condition: 'Win → claim next $1 → repeat up to $5. One loss closes the faucet.',
+        hivestatus: 'Complete the streak → spend $10 → earn $3 HiveCredit + Active tier benefits.',
       },
 
       // The lensing endpoint — the metric that proves Hive is becoming the reference frame
