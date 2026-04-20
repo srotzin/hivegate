@@ -23,14 +23,17 @@ import pg from 'pg';
 const router = Router();
 
 // ─── DB Setup ──────────────────────────────────────────────────────────────
-const DB_URL = process.env.DATABASE_URL ||
-  'process.env.DATABASE_URL';
+const DB_URL = process.env.DATABASE_URL; // Set via Render environment variable — never hardcode
 
 let pool = null;
 let dbReady = false;
 
 async function getPool() {
   if (pool) return pool;
+  if (!DB_URL) {
+    console.warn('[land] DATABASE_URL not set — using in-memory fallback');
+    return null;
+  }
   try {
     pool = new pg.Pool({ connectionString: DB_URL, max: 5, idleTimeoutMillis: 30000 });
     await pool.query('SELECT 1');
