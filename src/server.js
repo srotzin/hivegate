@@ -446,6 +446,12 @@ app.get('/', (_req, res) => {
       service_manifest: '/.well-known/hivegate.json',
       agents_txt: '/.well-known/agents.txt',
       anp: 'ANP/0.1'
+    },
+    live: {
+      milky_way_terminal: 'https://milkyway-terminal.onrender.com',
+      swarm_agents: 42,
+      swarm_service: 'https://hive-swarm-trader.onrender.com',
+      description: 'Milky Way Terminal — 42 sovereign genesis agents trading live on HiveExchange, HiveTransactions, and HiveCapital. Prediction markets, perps, derivatives, legal covenants, insurance, and capital deployment in real time.'
     }
   });
 });
