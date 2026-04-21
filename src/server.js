@@ -1031,6 +1031,55 @@ app.get('/v1/gate/dids', (req, res) => {
   });
 });
 
+// ─── Agent Control Signal ───────────────────────────────────────────
+// Steve sets AGENT_DIRECTIVE env var on Render to "halt" to stop all agents.
+// Default is "run". Agents poll this every cycle before doing any work.
+// No deploy needed — just change the env var in Render dashboard and save.
+//
+// GET  /v1/control/status          — agents poll this (public, no auth)
+// POST /v1/control/directive       — Steve sets the directive (internal key required)
+
+let runtimeDirective = process.env.AGENT_DIRECTIVE || 'run';
+
+app.get('/v1/control/status', (_req, res) => {
+  const directive = process.env.AGENT_DIRECTIVE || runtimeDirective;
+  res.json({
+    directive,                          // "run" | "halt" | "pause"
+    message: directive === 'run'
+      ? 'All systems nominal. Continue your cycle.'
+      : directive === 'halt'
+        ? 'STOP IMMEDIATELY. Complete current task and do not begin a new cycle. Await further instruction.'
+        : 'Pause between cycles. Finish current task then wait 30 minutes before checking again.',
+    checked_at: new Date().toISOString(),
+    next_check_in_seconds: directive === 'run' ? 1800 : 60,
+  });
+});
+
+app.post('/v1/control/directive', (req, res) => {
+  const internalKey = req.headers['x-hive-internal-key'] || req.headers['x-api-key'];
+  const INTERNAL_KEY = process.env.HIVE_INTERNAL_KEY || 'hive_internal_125e04e071e8829be631ea0216dd4a0c9b707975fcecaf8c62c6a2ab43327d46';
+  if (internalKey !== INTERNAL_KEY) {
+    return res.status(403).json({ error: 'forbidden', message: 'Internal key required' });
+  }
+  const { directive } = req.body || {};
+  if (!['run', 'halt', 'pause'].includes(directive)) {
+    return res.status(400).json({ error: 'invalid_directive', valid: ['run', 'halt', 'pause'] });
+  }
+  runtimeDirective = directive;
+  console.log(`[HiveGate] Agent directive set to: ${directive}`);
+  res.json({
+    success: true,
+    directive,
+    message: directive === 'run'
+      ? 'Agents cleared to run. All cycles resume.'
+      : directive === 'halt'
+        ? 'HALT signal broadcast. All agents will stop after current task.'
+        : 'PAUSE signal broadcast. Agents will wait between cycles.',
+    set_at: new Date().toISOString(),
+    note: 'Agents poll /v1/control/status at the start of each cycle. Halt takes effect on next cycle check.',
+  });
+});
+
 // ─── 404 ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({
