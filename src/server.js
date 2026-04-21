@@ -4,6 +4,7 @@ import gateRoutes from './routes/gate.js';
 import mcpRoutes from './routes/mcp.js';
 import referralMeshRoutes from './routes/referral-mesh.js';
 import landRoutes from './routes/land.js';
+import a2aRouter  from './routes/a2a.js';
 import { requireReputation, getTier, TIERS } from './middleware/reputation-gate.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
 import { getServiceRegistry } from './services/gate-engine.js';
@@ -315,6 +316,9 @@ app.use('/v1/gate', gateRoutes);
 
 // ─── Hivelandia Parcel Registry ────────────────────────────────────────
 app.use('/v1/land', landRoutes);
+
+// ─── A2A Protocol JSON-RPC — POST / (v0.2.1 + legacy tasks/send) ────────────
+app.use('/', a2aRouter);
 
 // ─── Referral Mesh Routes (Feature 1.6) ──────────────────────────────
 app.use('/v1/gate/referral', referralMeshRoutes);
