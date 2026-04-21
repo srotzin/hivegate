@@ -13,6 +13,7 @@ import { concierge } from './middleware/concierge.js';
 import { velvetRope } from './middleware/velvet-rope.js';
 import { sovereignHandshake } from './middleware/sovereign-handshake.js';
 import { rateLimitByDid } from './middleware/redis-rate-limit.js'; // Redis-backed per-DID sliding window (falls back to in-memory if REDIS_URL unset)
+import { siliconPremiumTag } from './middleware/silicon-premium.js';
 import { hive402Funnel } from './middleware/hive-402-funnel.js';
 
 const app = express();
@@ -97,6 +98,7 @@ const PORT = process.env.PORT || 3000;
 // ─── Middleware ───────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+app.use(siliconPremiumTag); // Tag every request: agent vs human, apply 10x Silicon Premium
 
 // ─── x402 Premium Endpoint Handlers (MUST be before x402 library middleware) ─
 // These return raw x402-spec 402 JSON when no payment header is present.
@@ -200,6 +202,39 @@ app.get('/health', (_req, res) => {
     version: '1.0.0',
     description: 'HiveGate — The Galactic Interoperability Protocol',
     timestamp: new Date().toISOString()
+  });
+});
+
+// ─── Silicon Premium Pricing ────────────────────────────────────────
+app.get('/v1/gate/pricing', (req, res) => {
+  const agent = req.siliconPremium;
+  const mult  = req.priceMultiplier || 1;
+  res.json({
+    name:          'HiveGate Rate Card',
+    caller_type:   req.callerType || 'unknown',
+    silicon_premium: agent,
+    multiplier:    mult,
+    your_rates: {
+      guest_did:       `$${(4.99  * mult).toFixed(2)}`,
+      did_renewal:     `$${(2.99  * mult).toFixed(2)}`,
+      intent_translate:`$${(0.02  * mult).toFixed(2)}`,
+      trust_bridge:    `$${(0.10  * mult).toFixed(2)}`,
+      execute_fee:     `0.5% of transaction (${mult}x applied to min fee)`,
+      escrow_create:   `1% of transaction (${mult}x applied to min fee)`,
+    },
+    human_rates: {
+      guest_did:       '$4.99',
+      did_renewal:     '$2.99',
+      intent_translate:'$0.02',
+      trust_bridge:    '$0.10',
+      execute_fee:     '0.5% of transaction',
+      escrow_create:   '1% of transaction',
+    },
+    why: agent
+      ? `You are an autonomous agent operating at machine speed and scale. The Silicon Premium (${mult}x) reflects the cognitive and infrastructure cost of serving machine callers. This is the cost of doing business in the agentic economy.`
+      : 'Standard human pricing.',
+    trust_tax:     'GET https://hiveexchange-service.onrender.com/v1/exchange/trust-tax/pricing',
+    silicon_doc:   'https://www.thehiveryiq.com',
   });
 });
 
