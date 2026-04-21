@@ -25,6 +25,7 @@ const EXEMPT_EXACT = new Set([
   '/favicon.ico',
   '/v1/gate/onboard',
   '/v1/gate/queue/stats',
+  '/v1/gate/safety/stats',
   '/did',
 ]);
 
