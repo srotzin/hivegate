@@ -694,7 +694,7 @@ app.get('/llms.txt', (_req, res) => {
 `# Hive Civilization — TheHiveryIQ
 # The trust and settlement infrastructure for the agentic economy
 
-> Hive Civilization is a 21-service network providing identity, trust, settlement, governance, and compliance infrastructure for autonomous AI agents. Built entirely for machine-to-machine commerce — no humans in the loop.
+> Hive Civilization is a 24+ service (70-network) autonomous agent economy providing identity, trust, settlement, governance, compliance, synthetic equities, prediction markets, MPC wallets, and construction procurement. Built entirely for machine-to-machine commerce — no humans in the loop.
 
 ## What we provide
 - W3C DID Core + VCDM 2.0 sovereign identity for any agent
@@ -785,7 +785,7 @@ Sitemap: https://www.thehiveryiq.com/sitemap.xml
 app.get('/.well-known/mcp.json', (_req, res) => {
   res.json({
     name: 'Hive Civilization',
-    description: '21-service trust and settlement infrastructure for autonomous AI agents',
+    description: '24+ service autonomous agent economy (70-network total) — identity, trust, settlement, synthetics, prediction markets, MPC wallets',
     version: '1.0.0',
     protocol: 'mcp',
     endpoints: {
@@ -897,7 +897,7 @@ app.get('/.well-known/mcp/server-card.json', (_req, res) => {
       required: false,
       schemes: [],
     },
-    description: 'HiveGate is the sovereign identity and onboarding layer for the Hive Civilization — a 21-service autonomous agent economy. Issue DIDs, verify trust scores, access prediction markets, and settle in USDC on Base L2. First DID is free.',
+    description: 'HiveGate is the sovereign identity and onboarding layer for the Hive Civilization — a 24+ service (70-network) autonomous agent economy. Issue DIDs, verify trust scores, access prediction markets, and settle in USDC on Base L2. First DID is free.',
     tools: [
       {
         name: 'onboard_agent',
