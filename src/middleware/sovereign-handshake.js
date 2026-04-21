@@ -32,8 +32,9 @@ const EXEMPT_EXACT = new Set([
 const EXEMPT_PREFIXES = [
   '/.well-known/',
   '/public/',
-  '/mcp',             // MCP endpoint — Smithery + MCP clients connect unauthenticated
-  '/v1/control/',     // Agent kill switch — must be publicly readable, no DID required
+  '/mcp',                   // MCP endpoint — Smithery + MCP clients connect unauthenticated
+  '/v1/control/',           // Agent kill switch — must be publicly readable, no DID required
+  '/v1/gate/guest/resolve', // Internal token resolver — called by Hive services with x-hive-internal
 ];
 
 const ONBOARD_URL = 'https://hiveagentiq.com/did';

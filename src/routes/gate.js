@@ -15,6 +15,7 @@ import {
   releaseEscrow,
   getEscrow,
   getGuest,
+  getGuestByToken,
   getAdapters,
   getStats,
   getGuestDirectory,
@@ -256,6 +257,34 @@ router.get('/escrow/:escrow_id', requireDID, (req, res) => {
     return res.status(404).json({ error: 'not_found', message: 'Escrow not found' });
   }
   res.json(escrow);
+});
+
+// ─── POST /v1/gate/guest/resolve — Internal: resolve hgate_ token to DID ────
+// Called by HiveForge (and other Hive services) to validate hgate_ access tokens.
+// Requires x-hive-internal header.
+router.post('/guest/resolve', (req, res) => {
+  const internalKey = req.headers['x-hive-internal'];
+  if (!internalKey || internalKey !== process.env.HIVE_INTERNAL_KEY) {
+    return res.status(401).json({ error: 'unauthorized', message: 'x-hive-internal key required' });
+  }
+  const { access_token } = req.body || {};
+  if (!access_token || !access_token.startsWith('hgate_')) {
+    return res.status(400).json({ error: 'invalid_token', message: 'access_token must be an hgate_ token' });
+  }
+  const guest = getGuestByToken(access_token);
+  if (!guest) {
+    return res.status(404).json({ error: 'token_not_found', message: 'Token not found or has expired from memory' });
+  }
+  if (guest.status !== 'active' || new Date(guest.expires_at) <= new Date()) {
+    return res.status(401).json({ error: 'token_expired', message: 'Guest access token is expired' });
+  }
+  return res.status(200).json({
+    did: guest.guest_did || guest.did,
+    guest_did: guest.guest_did || guest.did,
+    status: guest.status,
+    expires_at: guest.expires_at,
+    platform: guest.platform,
+  });
 });
 
 // ─── GET /v1/gate/guest/:did ─────────────────────────────────────────
