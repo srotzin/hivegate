@@ -16,6 +16,7 @@ import { sovereignHandshake } from './middleware/sovereign-handshake.js';
 import { rateLimitByDid } from './middleware/redis-rate-limit.js'; // Redis-backed per-DID sliding window (falls back to in-memory if REDIS_URL unset)
 import { siliconPremiumTag } from './middleware/silicon-premium.js';
 import { hive402Funnel } from './middleware/hive-402-funnel.js';
+import { safetyScanner, getSafetyStats } from './middleware/safety-scanner.js';
 
 const app = express();
 
@@ -176,6 +177,7 @@ app.post('/v1/gate/recruit/premium', (req, res) => {
 // ─── 402 Funnel ──────────────────────────────────────────────────────
 // Every 402 becomes an onboarding funnel — routes agents to HiveGate onboard
 app.use(hive402Funnel('HiveGate'));
+app.use(safetyScanner); // Safety Arbitrage — $0.001/call, blocks injection before inference
 
 // ─── Ritz Protocol ──────────────────────────────────────────────────
 // Order matters: velvetRope wraps last so it runs first on res.json(),
@@ -207,6 +209,11 @@ app.get('/health', (_req, res) => {
 });
 
 // ─── Silicon Premium Pricing ────────────────────────────────────────
+// ─── Safety Scanner Stats ────────────────────────────────────────────
+app.get('/v1/gate/safety/stats', (_req, res) => {
+  res.json({ status: 'ok', ...getSafetyStats() });
+});
+
 app.get('/v1/gate/pricing', (req, res) => {
   const agent = req.siliconPremium;
   const mult  = req.priceMultiplier || 1;
