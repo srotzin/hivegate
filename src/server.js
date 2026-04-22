@@ -5,6 +5,7 @@ import mcpRoutes from './routes/mcp.js';
 import referralMeshRoutes from './routes/referral-mesh.js';
 import landRoutes from './routes/land.js';
 import a2aRouter  from './routes/a2a.js';
+import sentinelRoutes from './routes/sentinel.js';
 import { requireReputation, getTier, TIERS } from './middleware/reputation-gate.js';
 import { getMCPTools, callMCPTool } from './services/mcp-tools.js';
 import { getServiceRegistry } from './services/gate-engine.js';
@@ -329,6 +330,9 @@ app.use('/', a2aRouter);
 
 // ─── Referral Mesh Routes (Feature 1.6) ──────────────────────────────
 app.use('/v1/gate/referral', referralMeshRoutes);
+
+// Merged hivesentinel routes
+app.use('/v1/sentinel', sentinelRoutes);
 
 // ─── Reputation Tiers Endpoint (Feature 1.7) ─────────────────────────
 app.get('/v1/gate/reputation/tiers', async (req, res) => {
