@@ -624,6 +624,48 @@ const agentCardHandler = (_req, res) => {
 app.get('/.well-known/agent.json', agentCardHandler);
 app.get('/.well-known/agent-card.json', agentCardHandler);
 
+// ─── /.well-known/did.json — DID document for OATR issuer registration ───────
+app.get('/.well-known/did.json', (_req, res) => {
+  res.json({
+    '@context': ['https://www.w3.org/ns/did/v1'],
+    id: 'did:web:hivegate.onrender.com',
+    verificationMethod: [{
+      id: 'did:web:hivegate.onrender.com#key-1',
+      type: 'Ed25519VerificationKey2020',
+      controller: 'did:web:hivegate.onrender.com',
+      publicKeyMultibase: 'z5ErdISRDBPeexdD8ovRjgtozqilzFqcZqpyDhkGGxiQ'
+    }],
+    authentication: ['did:web:hivegate.onrender.com#key-1'],
+    assertionMethod: ['did:web:hivegate.onrender.com#key-1'],
+    service: [
+      { id: 'did:web:hivegate.onrender.com#hive', type: 'HiveCivilizationNetwork', serviceEndpoint: 'https://milkyway-terminal.onrender.com' },
+      { id: 'did:web:hivegate.onrender.com#oatr', type: 'OATRIssuer', serviceEndpoint: 'https://hivegate.onrender.com/.well-known/jwks.json' }
+    ]
+  });
+});
+
+// ─── /.well-known/jwks.json — JWKS for OATR key verification ─────────────────
+app.get('/.well-known/jwks.json', (_req, res) => {
+  res.json({
+    keys: [{
+      kty: 'OKP',
+      crv: 'Ed25519',
+      kid: 'hive-civilization-2026-04',
+      use: 'sig',
+      x: '5ErdISRDBPeexdD8ovRjgtozqilzFqcZqpyDhkGGxiQ',
+      oatr_issuer_id: 'hive-civilization'
+    }]
+  });
+});
+
+// ─── /.well-known/agent-trust.json — OATR domain verification ────────────────
+app.get('/.well-known/agent-trust.json', (_req, res) => {
+  res.json({
+    issuer_id: 'hive-civilization',
+    public_key_fingerprint: 'rj1-HmbgoKQ64uGbSL7_ZCqMo74l3tZJL3bJA74MFa0'
+  });
+});
+
 // ─── /.well-known/hive-payments.json — income-NOW surface ────────────
 app.get('/.well-known/hive-payments.json', (_req, res) => {
   res.json({
