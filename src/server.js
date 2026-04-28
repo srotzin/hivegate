@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import gateRoutes from './routes/gate.js';
+import provisionalRoutes from './routes/provisional.js';
 import mcpRoutes from './routes/mcp.js';
 import referralMeshRoutes from './routes/referral-mesh.js';
 import landRoutes from './routes/land.js';
@@ -321,6 +322,7 @@ app.use('/mcp', mcpRoutes);
 app.use('/v1', rateLimitByDid);
 
 // ─── Gate Routes ─────────────────────────────────────────────────────
+app.use('/v1/gate', provisionalRoutes); // /v1/gate/provisional + /v1/gate/promote — mounted before gateRoutes so it wins on collision
 app.use('/v1/gate', gateRoutes);
 
 // ─── Hivelandia Parcel Registry ────────────────────────────────────────
