@@ -26,6 +26,9 @@ const EXEMPT_EXACT = new Set([
   '/v1/gate/onboard',
   '/v1/gate/queue/stats',
   '/v1/gate/safety/stats',
+  '/v1/gate/provisional',          // gamification viral on-ramp — issues DID for unsovereign peers
+  '/v1/gate/provisional/stats',    // operator visibility
+  '/v1/gate/promote',              // signature-verified DID promotion (no DID exists yet to present)
   '/did',
 ]);
 
