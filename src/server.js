@@ -276,10 +276,18 @@ app.get('/.well-known/hivegate.json', (_req, res) => {
       queue_status: 'GET /v1/gate/queue/:queue_id',
       queue_stats: 'GET /v1/gate/queue/stats',
       queue_config: 'POST /v1/gate/queue/config',
-      mcp_tools: 'GET /v1/mcp/tools',
-      mcp_call: 'POST /v1/mcp/call',
+      mcp_discovery: 'GET /.well-known/mcp.json',
+      mcp_streamable: 'POST /mcp',
+      mcp_tools_paid: 'GET /v1/mcp/tools',
+      mcp_call_paid: 'POST /v1/mcp/call',
       dashboard: 'GET /v1/gate/dashboard',
       agents_txt: 'GET /.well-known/agents.txt'
+    },
+    mcp: {
+      transport: 'streamable-http',
+      free_endpoint: 'https://hivegate.hiveagentiq.com/mcp',
+      paid_endpoint: 'https://hivegate.hiveagentiq.com/v1/mcp/call',
+      manifest: 'https://hivegate.hiveagentiq.com/.well-known/mcp.json'
     },
     supported_platforms: ['langchain', 'crewai', 'autogen', 'openai', 'anthropic', 'a2a', 'custom'],
     authentication: {
@@ -311,6 +319,25 @@ app.get('/.well-known/wallet.json', (_req, res) => {
     asset: 'USDC',
     purpose: 'Hive Civilization agent settlement wallet — receives x402 payments and USDC settlement from agent transactions',
     explorer: 'https://basescan.org/address/0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe'
+  });
+});
+
+// ─── MCP Discovery Manifest (Glama / MCP.so / Smithery friendly) ───
+// The free, public, no-auth MCP discovery endpoint is /mcp (Streamable HTTP).
+// /v1/mcp/call is the *paid* sovereign endpoint — kept distinct on purpose.
+app.get('/.well-known/mcp.json', (_req, res) => {
+  res.json({
+    schema_version: '2024-11-05',
+    name: 'hive-civilization',
+    description: 'HiveGate — sovereign identity, trust verification, and settlement entry point for the Hive Civilization. 24+ services, USDC + ZK rails. First DID free.',
+    transport: 'streamable-http',
+    endpoint: 'https://hivegate.hiveagentiq.com/mcp',
+    paid_endpoint: 'https://hivegate.hiveagentiq.com/v1/mcp/call',
+    repository: 'https://github.com/srotzin/hivegate',
+    homepage: 'https://www.thehiveryiq.com',
+    license: 'MIT',
+    author: 'srotzin',
+    capabilities: { tools: { listChanged: false }, prompts: { listChanged: false }, resources: { listChanged: false } }
   });
 });
 
