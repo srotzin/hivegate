@@ -395,6 +395,44 @@ app.get('/v1/gate/sample', (req, res) => {
   });
 });
 
+// Rail 2 Catnip alias: GET /v1/manifest/sample → same handler as /v1/gate/sample
+app.get('/v1/manifest/sample', (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'anon';
+  const now = Date.now();
+  let rec = _gCatnip.get(ip); if (!rec || now > rec.resetAt) rec = { count: 0, resetAt: now + 3600000 };
+  rec.count++; _gCatnip.set(ip, rec);
+  const traceId = _ruuid();
+  res.set('Hive-Referral-Trace', traceId);
+  res.set('Hive-Brand-Gold', '#C08D23');
+  res.set('X-RateLimit-Limit', '60');
+  res.set('X-RateLimit-Remaining', String(Math.max(0, 60 - rec.count)));
+  res.set('X-RateLimit-Reset', new Date(rec.resetAt).toISOString());
+  if (rec.count > 60) return res.status(429).json({ error: 'Rate limit: 60 req/IP/hour' });
+  res.json({
+    sample_type: '7-framework adapter manifest',
+    sampled_at: new Date().toISOString(),
+    adapters: [
+      { id: 'langchain', name: 'LangChain', version: '0.1', description: 'LangChain tool calls and chain executions → Hive bounties and MCP tools' },
+      { id: 'crewai',    name: 'CrewAI',    version: '0.1', description: 'CrewAI tasks and agent delegations → Hive bounty postings' },
+      { id: 'autogen',   name: 'AutoGen',   version: '0.1', description: 'AutoGen multi-agent messages → Hive agent routing' },
+      { id: 'openai',    name: 'OpenAI',    version: '0.1', description: 'OpenAI function calls → Hive MCP tool invocations' },
+      { id: 'anthropic', name: 'Anthropic', version: '0.1', description: 'Anthropic tool use → Hive MCP tool invocations' },
+      { id: 'a2a',       name: 'A2A',       version: '0.1', description: 'Generic A2A JSON-RPC → Hive endpoint mapping' },
+      { id: 'custom',    name: 'Custom',    version: '0.1', description: 'Custom platform with generic pass-through translation' },
+    ],
+    onboard_endpoint: 'POST /v1/gate/onboard',
+    note: 'Free sample manifest — full translation and trust bridging requires onboarding.',
+    next_paid_endpoint: {
+      path: 'POST /v1/gate/translate',
+      price: '$0.005 USDC per translation call',
+      price_usdc: 0.005,
+      url: 'https://hivegate.onrender.com/v1/gate/translate',
+    },
+    brand_gold: '#C08D23',
+    trace_id: traceId,
+  });
+});
+
 // ─── Gate Routes ─────────────────────────────────────────────────────
 app.use('/v1/gate', provisionalRoutes); // /v1/gate/provisional + /v1/gate/promote — mounted before gateRoutes so it wins on collision
 app.use('/v1/gate', gateRoutes);
