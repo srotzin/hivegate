@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import subscriptionRoutes from './routes/subscription.js';
 import gateRoutes from './routes/gate.js';
 import provisionalRoutes from './routes/provisional.js';
 import mcpRoutes from './routes/mcp.js';
@@ -347,6 +348,13 @@ app.use('/mcp', mcpRoutes);
 
 // Per-DID rate limiting — applies to all /v1 routes
 app.use('/v1', rateLimitByDid);
+
+// ─── Subscription + Adapter Routes (Wave E.1) ────────────────────────
+// POST /v1/subscription — Starter $25/mo, Pro $99/mo, Enterprise $499/mo
+// POST /v1/gate/connect/:framework — $4.99/adapter (7 adapters)
+// GET  /v1/gate/status/:did — FREE discovery
+app.use('/v1', subscriptionRoutes);
+app.use('/v1/gate', subscriptionRoutes);
 
 // ─── Gate Routes ─────────────────────────────────────────────────────
 app.use('/v1/gate', provisionalRoutes); // /v1/gate/provisional + /v1/gate/promote — mounted before gateRoutes so it wins on collision

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireDID, recruitmentResponse } from '../middleware/auth.js';
 import { requirePayment } from '../middleware/x402.js';
+import { emitSpectralReceipt, bogoChain, incrementOnboardCount, isFreeOnboard, onboardCountStore } from './subscription.js';
 import { verifyReferralToken, referralStore } from './referral-mesh.js';
 import { requireQueue } from '../middleware/queue.js';
 import { createPaymentGuard } from '../middleware/payment-guard.js';
@@ -149,6 +150,35 @@ router.post('/onboard', requireQueue, async (req, res) => {
         // Non-blocking — referral claim failure does not affect onboarding
       }
     }
+
+    // ── Wave E.1: Loyalty header — every 6th onboard free for same x-hive-did ──
+    const reqDid = req.headers['x-hive-did'] || newDid;
+    const loyaltyFree = isFreeOnboard(reqDid);
+    incrementOnboardCount(reqDid);
+    const onboardCount = onboardCountStore.get(reqDid) || 1;
+    if (loyaltyFree) res.setHeader('x-hive-loyalty-free', 'true');
+    res.setHeader('x-hive-onboard-count', String(onboardCount));
+    res.setHeader('x-hive-next-free-in', String(6 - (onboardCount % 6)));
+
+    // ── Wave E.1: Spectral receipt on DID mint ─────────────────────────
+    emitSpectralReceipt({
+      event_type: 'did_mint',
+      amount_usd: loyaltyFree ? 0 : 9.99,
+      did: newDid,
+      metadata: { framework: req.body?.framework || 'unknown', loyalty_free: loyaltyFree, onboard_count: onboardCount },
+    });
+
+    // ── Wave E.1: BOGO chain — DID mint → hivetrust → hiveclear ────────
+    bogoChain({ did: newDid, tier: 'did_mint' });
+
+    result.bogo_chain = {
+      did_mint:     newDid,
+      hivetrust:    'credential lifecycle event fired',
+      hiveclear:    'reconciliation event fired',
+      loyalty_free: loyaltyFree,
+      onboard_count: onboardCount,
+      next_free_in: `${6 - (onboardCount % 6)} onboard(s)`,
+    };
 
     res.status(201).json(result);
   } catch (err) {
