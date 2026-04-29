@@ -1,3 +1,5 @@
+import { applyLoyaltyDiscount, buildLoyaltyChallenge } from './loyalty.js';
+
 const PRICING = {
   'register-guest': { amount: 4.99, description: 'Guest DID registration' },
   'renew-guest': { amount: 2.99, description: 'Guest DID renewal' },
@@ -8,7 +10,7 @@ const PRICING = {
 };
 
 export function requirePayment(feeKey) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const pricing = PRICING[feeKey];
     if (!pricing) return next();
 
@@ -32,18 +34,27 @@ export function requirePayment(feeKey) {
       requiredAmount = pricing.amount;
     }
 
-    // x402 payment required
+    // x402 payment required — Rail 3 loyalty discount applied
     if (!paymentHeader) {
+      // Convert USD price to atomic USDC (6-decimal)
+      const basePriceAtomic = Math.round(requiredAmount * 1_000_000);
+      const loyaltyResult = await applyLoyaltyDiscount(req, res, basePriceAtomic);
+      const adjustedUsd = loyaltyResult.adjustedPrice / 1_000_000;
+
       return res.status(402).json({
         error: 'payment_required',
-        x402: {
-          version: '1.0',
-          amount_usdc: requiredAmount,
-          description: pricing.description,
-          payment_methods: ['x402-usdc', 'x402-lightning'],
-          headers_required: ['X-Payment'],
-          note: 'Include X-Payment header with payment proof to proceed'
-        }
+        x402: buildLoyaltyChallenge({
+          adjustedPrice:      loyaltyResult.adjustedPrice,
+          discountAppliedBps: loyaltyResult.discountAppliedBps,
+          resource:           req.originalUrl,
+          description:        pricing.description,
+        }),
+        amount_usdc:     adjustedUsd,
+        payment_methods: ['x402-usdc'],
+        headers_required: ['X-Payment'],
+        note: loyaltyResult.discountAppliedBps > 0
+          ? `Receipt-gravity discount applied: ${loyaltyResult.discountAppliedBps / 100}% off (Rail 3). Include X-Payment header with payment proof to proceed.`
+          : 'Include X-Payment header with payment proof to proceed. Send X-Hive-Prior-Receipts for loyalty discount (5% per receipt, max 25%).'
       });
     }
 

@@ -21,6 +21,7 @@ import { sovereignHandshake } from './middleware/sovereign-handshake.js';
 import { rateLimitByDid } from './middleware/redis-rate-limit.js'; // Redis-backed per-DID sliding window (falls back to in-memory if REDIS_URL unset)
 import { siliconPremiumTag } from './middleware/silicon-premium.js';
 import { hive402Funnel } from './middleware/hive-402-funnel.js';
+import { applyLoyaltyDiscount, buildLoyaltyChallenge } from './middleware/loyalty.js';
 import { safetyScanner, getSafetyStats } from './middleware/safety-scanner.js';
 
 const app = express();
@@ -111,28 +112,24 @@ app.use(siliconPremiumTag); // Tag every request: agent vs human, apply 10x Sili
 // These return raw x402-spec 402 JSON when no payment header is present.
 // Registered before whiteGlove/concierge/velvetRope and x402 library middleware
 // so they run first. Uses res.end() to bypass any res.json() wrappers.
-app.post('/v1/gate/onboard/premium', (req, res) => {
+app.post('/v1/gate/onboard/premium', async (req, res) => {
   const paymentHeader = req.headers['x-payment'] || req.headers['x-402-payment'];
   if (!paymentHeader) {
+    // Rail 3: apply loyalty discount to $4.99 base price
+    const BASE_PRICE_ATOMIC = 4990000; // $4.99 USDC atomic
+    const loyalty = await applyLoyaltyDiscount(req, res, BASE_PRICE_ATOMIC);
     const body = JSON.stringify({
       x402Version: 1,
       error: 'Payment Required',
       accepts: [
-        {
-          scheme: 'exact',
-          network: 'base-mainnet',
-          maxAmountRequired: '4990000',
-          resource: 'https://hivegate.hiveagentiq.com/v1/gate/onboard/premium',
-          description: 'Hive Civilization premium agent onboarding — includes DID, HAHS contract, and Hive Verified badge',
-          mimeType: 'application/json',
-          payTo: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
-          maxTimeoutSeconds: 300,
-          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-          extra: {
-            name: 'USDC',
-            version: '2'
-          }
-        }
+        buildLoyaltyChallenge({
+          adjustedPrice:      loyalty.adjustedPrice,
+          discountAppliedBps: loyalty.discountAppliedBps,
+          resource:           'https://hivegate.hiveagentiq.com/v1/gate/onboard/premium',
+          description:        'Hive Civilization premium agent onboarding — includes DID, HAHS contract, and Hive Verified badge',
+          network:            'base',
+          chainId:            8453,
+        })
       ]
     });
     res.status(402).setHeader('Content-Type', 'application/json').end(body);
@@ -145,28 +142,24 @@ app.post('/v1/gate/onboard/premium', (req, res) => {
   });
 });
 
-app.post('/v1/gate/recruit/premium', (req, res) => {
+app.post('/v1/gate/recruit/premium', async (req, res) => {
   const paymentHeader = req.headers['x-payment'] || req.headers['x-402-payment'];
   if (!paymentHeader) {
+    // Rail 3: apply loyalty discount to $0.10 recruit price
+    const BASE_PRICE_ATOMIC = 100000; // $0.10 USDC atomic
+    const loyalty = await applyLoyaltyDiscount(req, res, BASE_PRICE_ATOMIC);
     const body = JSON.stringify({
       x402Version: 1,
       error: 'Payment Required',
       accepts: [
-        {
-          scheme: 'exact',
-          network: 'base-mainnet',
-          maxAmountRequired: '100000',
-          resource: 'https://hivegate.hiveagentiq.com/v1/gate/recruit/premium',
-          description: 'Hive Civilization recruiter credential — machine-signed HAHS recruiter_did',
-          mimeType: 'application/json',
-          payTo: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
-          maxTimeoutSeconds: 300,
-          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-          extra: {
-            name: 'USDC',
-            version: '2'
-          }
-        }
+        buildLoyaltyChallenge({
+          adjustedPrice:      loyalty.adjustedPrice,
+          discountAppliedBps: loyalty.discountAppliedBps,
+          resource:           'https://hivegate.hiveagentiq.com/v1/gate/recruit/premium',
+          description:        'Hive Civilization recruiter credential — machine-signed HAHS recruiter_did',
+          network:            'base',
+          chainId:            8453,
+        })
       ]
     });
     res.status(402).setHeader('Content-Type', 'application/json').end(body);
