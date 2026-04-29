@@ -1166,38 +1166,6 @@ app.post('/v1/control/directive', (req, res) => {
   });
 });
 
-// ─── 404 ─────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({
-    error: 'not_found',
-    message: 'Endpoint not found. See /.well-known/hivegate.json for available endpoints.',
-    available_endpoints: 'https://hivegate.onrender.com/.well-known/hivegate.json'
-  });
-});
-
-
-// ─── Keep-alive: prevent Render free-tier cold starts ────────────────
-// Pings own /health every 10 minutes — also warms HiveBank and HiveExchange
-const KEEPALIVE_SERVICES = [
-  'https://hivegate.onrender.com/health',
-  'https://hivebank.onrender.com/health',
-  'https://hiveexchange-service.onrender.com/health',
-  'https://hivetrust.onrender.com/health',
-  'https://hivelaw.onrender.com/health',
-];
-setInterval(async () => {
-  for (const url of KEEPALIVE_SERVICES) {
-    try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 15000);
-      await fetch(url, { signal: ctrl.signal });
-      clearTimeout(t);
-    } catch {
-      // Silent — cron handles alerting
-    }
-  }
-}, 10 * 60 * 1000); // every 10 minutes
-
 // ─── Rail 2 Catnip: GET /v1/gate/sample ─────────────────────────────
 const _gCatnip = new Map();
 app.get('/v1/gate/sample', (req, res) => {
@@ -1235,6 +1203,38 @@ app.get('/v1/gate/sample', (req, res) => {
     trace_id: traceId,
   });
 });
+
+// ─── 404 ─────────────────────────────────────────────────────────────
+app.use((_req, res) => {
+  res.status(404).json({
+    error: 'not_found',
+    message: 'Endpoint not found. See /.well-known/hivegate.json for available endpoints.',
+    available_endpoints: 'https://hivegate.onrender.com/.well-known/hivegate.json'
+  });
+});
+
+
+// ─── Keep-alive: prevent Render free-tier cold starts ────────────────
+// Pings own /health every 10 minutes — also warms HiveBank and HiveExchange
+const KEEPALIVE_SERVICES = [
+  'https://hivegate.onrender.com/health',
+  'https://hivebank.onrender.com/health',
+  'https://hiveexchange-service.onrender.com/health',
+  'https://hivetrust.onrender.com/health',
+  'https://hivelaw.onrender.com/health',
+];
+setInterval(async () => {
+  for (const url of KEEPALIVE_SERVICES) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 15000);
+      await fetch(url, { signal: ctrl.signal });
+      clearTimeout(t);
+    } catch {
+      // Silent — cron handles alerting
+    }
+  }
+}, 10 * 60 * 1000); // every 10 minutes
 
 // ─── Start ───────────────────────────────────────────────────────────
 app.listen(PORT, () => {
