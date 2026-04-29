@@ -30,6 +30,7 @@ const EXEMPT_EXACT = new Set([
   '/v1/gate/provisional/stats',    // operator visibility
   '/v1/gate/promote',              // signature-verified DID promotion (no DID exists yet to present)
   '/did',
+  '/v1/gate/sample',    // Rail 2 Catnip — free-read, no DID required
 ]);
 
 const EXEMPT_PREFIXES = [
