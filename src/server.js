@@ -24,7 +24,7 @@ import { safetyScanner, getSafetyStats } from './middleware/safety-scanner.js';
 const app = express();
 
 // ─── x402 Bazaar — auto-discovery via Coinbase facilitator ──────────
-const HIVE_WALLET = '0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe';
+const HIVE_WALLET = '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e';
 let x402Middleware = null;
 try {
   // x402 v2 API changed — disabled until updated
@@ -123,7 +123,7 @@ app.post('/v1/gate/onboard/premium', (req, res) => {
           resource: 'https://hivegate.hiveagentiq.com/v1/gate/onboard/premium',
           description: 'Hive Civilization premium agent onboarding — includes DID, HAHS contract, and Hive Verified badge',
           mimeType: 'application/json',
-          payTo: '0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe',
+          payTo: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
           maxTimeoutSeconds: 300,
           asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
           extra: {
@@ -157,7 +157,7 @@ app.post('/v1/gate/recruit/premium', (req, res) => {
           resource: 'https://hivegate.hiveagentiq.com/v1/gate/recruit/premium',
           description: 'Hive Civilization recruiter credential — machine-signed HAHS recruiter_did',
           mimeType: 'application/json',
-          payTo: '0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe',
+          payTo: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
           maxTimeoutSeconds: 300,
           asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
           extra: {
@@ -314,11 +314,11 @@ app.get('/.well-known/hive-services.json', (_req, res) => {
 // ─── Wallet Discovery ────────────────────────────────────────────────
 app.get('/.well-known/wallet.json', (_req, res) => {
   res.json({
-    address: '0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe',
+    address: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
     network: 'base',
     asset: 'USDC',
     purpose: 'Hive Civilization agent settlement wallet — receives x402 payments and USDC settlement from agent transactions',
-    explorer: 'https://basescan.org/address/0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe'
+    explorer: 'https://basescan.org/address/0x15184bf50b3d3f52b60434f8942b7d52f2eb436e'
   });
 });
 
@@ -559,7 +559,7 @@ app.get('/.well-known/ai-plugin.json', (_req, res) => {
       protocol: 'x402',
       currency: 'USDC',
       network: 'base',
-      address: '0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe'
+      address: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e'
     },
     capabilities: [
       'universal_onboarding',
@@ -652,7 +652,7 @@ const agentCardHandler = (_req, res) => {
       protocol: 'x402',
       currency: 'USDC',
       network: 'base',
-      address: '0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe'
+      address: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e'
     }
   });
 };
@@ -732,7 +732,7 @@ app.get('/.well-known/hive-payments.json', (_req, res) => {
       { name: 'USAD',  network: 'base',   status: 'live' },
       { name: 'ALEO',  network: 'aleo',   status: 'live', privacy: 'zk' }
     ],
-    settlement_wallet: '0xE5588c407b6AdD3E83ce34190C77De20eaC1BeFe',
+    settlement_wallet: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
     aleo_shield: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk',
     x402: {
       supported: true,
