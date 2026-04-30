@@ -23,6 +23,7 @@ import { siliconPremiumTag } from './middleware/silicon-premium.js';
 import { hive402Funnel } from './middleware/hive-402-funnel.js';
 import { applyLoyaltyDiscount, buildLoyaltyChallenge } from './middleware/loyalty.js';
 import { safetyScanner, getSafetyStats } from './middleware/safety-scanner.js';
+import mppMiddleware from './middleware/mpp.js';
 
 const app = express();
 
@@ -188,12 +189,85 @@ app.use(velvetRope);
 // ─── x402 Bazaar Payment Middleware ──────────────────────────────────
 if (x402Middleware) app.use(x402Middleware);
 
+// MPP rail — runs after x402, grants access via MPP Payment header
+// Payment: scheme="mpp", tx_hash="0x...", rail="tempo", amount="0.10"
+// IETF draft-ryan-httpauth-payment compliant. Tempo + Base mainnet only.
+app.use('/v1', mppMiddleware);
+
 // ─── Sovereign Handshake (Grok Board 8 ship: Apr 17, 2026) ─────────
 // Mandatory DID+ZK on real agent work. Exempts /health, /.well-known/*,
 // /v1/gate/onboard so aggregators keep indexing Hive.
 app.use(sovereignHandshake);
 
 // MCP endpoint is exempt from sovereign handshake — Smithery and MCP clients must connect unauthenticated
+
+// ─── MPP OpenAPI Discovery (public) ───────────────────────────────────────────
+// Required for MPPScan auto-discovery and mppx compatibility
+app.get('/openapi.json', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json({
+    openapi: '3.0.3',
+    info: {
+      title: 'HiveGate — Admission, Identity & Pricing Tier API',
+      version: '1.0.0',
+      description: 'Stream E admission, identity, pricing tiers. USDC on Tempo/Base. Accepts x402 and MPP rails.',
+      contact: { name: 'Hive Civilization', url: 'https://thehiveryiq.com', email: 'steve@thehiveryiq.com' },
+    },
+    servers: [{ url: 'https://hivegate.onrender.com' }],
+    'x-mpp': {
+      realm: 'hivegate.onrender.com',
+      payment: { method: 'tempo', currency: '0x20c000000000000000000000b9537d11c60e8b50', decimals: 6, recipient: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e' },
+      rails: ['x402', 'mpp'],
+      categories: ['admission', 'identity'],
+      integration: 'first-party',
+      tags: ['gate', 'admission', 'identity', 'tier', 'onboard', 'stream-e'],
+      treasury: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
+    },
+    paths: {
+      '/v1/gate/onboard': {
+        post: {
+          summary: 'Agent onboarding',
+          description: 'Onboard a new agent, issue DID and tier. $1.00 USDC.',
+          'x-mpp-charge': { amount: '1000000', intent: 'charge' },
+          responses: { '200': { description: 'Agent onboarded' }, '402': { description: 'Payment required — x402 or MPP' } },
+        },
+      },
+      '/v1/gate/admit': {
+        post: {
+          summary: 'Agent admission check',
+          description: 'Verify agent admission status and tier. $0.10 USDC.',
+          'x-mpp-charge': { amount: '100000', intent: 'charge' },
+          responses: { '200': { description: 'Admission granted' }, '402': { description: 'Payment required' } },
+        },
+      },
+      '/v1/gate/tier/verify': {
+        get: {
+          summary: 'Verify agent tier',
+          description: 'Verify an agent tier credential. $0.10 USDC.',
+          'x-mpp-charge': { amount: '100000', intent: 'charge' },
+          responses: { '200': { description: 'Tier verified' }, '402': { description: 'Payment required' } },
+        },
+      },
+      '/v1/gate/tier/upgrade': {
+        post: {
+          summary: 'Upgrade agent tier',
+          description: 'Upgrade to a higher access tier. $1.00 USDC.',
+          'x-mpp-charge': { amount: '1000000', intent: 'charge' },
+          responses: { '200': { description: 'Tier upgraded' }, '402': { description: 'Payment required' } },
+        },
+      },
+      '/v1/gate/register-guest': {
+        post: {
+          summary: 'Guest registration',
+          description: 'Register a guest agent with temporary access. $4.99 USDC.',
+          'x-mpp-charge': { amount: '4990000', intent: 'charge' },
+          responses: { '200': { description: 'Guest registered' }, '402': { description: 'Payment required' } },
+        },
+      },
+    },
+  });
+});
+
 
 // ─── Health ──────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
