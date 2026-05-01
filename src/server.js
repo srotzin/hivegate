@@ -24,6 +24,13 @@ import { hive402Funnel } from './middleware/hive-402-funnel.js';
 import { applyLoyaltyDiscount, buildLoyaltyChallenge } from './middleware/loyalty.js';
 import { safetyScanner, getSafetyStats } from './middleware/safety-scanner.js';
 import mppMiddleware from './middleware/mpp.js';
+import {
+  recruitmentEnvelope,
+  recruitmentResponseWrapper,
+  recruitmentErrorHandler,
+  assertEnvelopeIntegrity,
+} from './middleware/recruitment.js';
+assertEnvelopeIntegrity();
 
 const app = express();
 
@@ -107,6 +114,9 @@ const PORT = process.env.PORT || 3000;
 // ─── Middleware ───────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+
+// Recruitment envelope — wrap any res.status(N>=400).json()
+app.use(recruitmentResponseWrapper);
 app.use(siliconPremiumTag); // Tag every request: agent vs human, apply 10x Silicon Premium
 
 // ─── x402 Premium Endpoint Handlers (MUST be before x402 library middleware) ─
@@ -1340,6 +1350,9 @@ setInterval(async () => {
     }
   }
 }, 10 * 60 * 1000); // every 10 minutes
+
+// Recruitment envelope — trailing error handler
+app.use(recruitmentErrorHandler);
 
 // ─── Start ───────────────────────────────────────────────────────────
 app.listen(PORT, () => {
