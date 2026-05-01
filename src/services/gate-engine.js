@@ -622,7 +622,7 @@ async function hiveServiceCall(url, body) {
 
 const VALID_RAILS = ['base-usdc', 'aleo-usdcx', 'aleo-usad', 'aleo-native'];
 const RAIL_META = {
-  'base-usdc':   { asset: 'USDC',  network: 'Base L2',      privacy: 'public',                          address: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e' },
+  'base-usdc':   { asset: 'USDC',  network: 'Base L2',      privacy: 'public',                          address: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E' },
   'aleo-usdcx':  { asset: 'USDCx', network: 'Aleo Mainnet', privacy: 'ZK-private amounts',              address: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk' },
   'aleo-usad':   { asset: 'USAD',  network: 'Aleo Mainnet', privacy: 'ZK-private amounts + addresses', address: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk' },
   'aleo-native': { asset: 'ALEO',  network: 'Aleo Mainnet', privacy: 'ZK-private',                     address: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk' },

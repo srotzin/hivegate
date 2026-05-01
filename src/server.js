@@ -28,7 +28,7 @@ import mppMiddleware from './middleware/mpp.js';
 const app = express();
 
 // ─── x402 Bazaar — auto-discovery via Coinbase facilitator ──────────
-const HIVE_WALLET = '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e';
+const HIVE_WALLET = '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E';
 let x402Middleware = null;
 try {
   // x402 v2 API changed — disabled until updated
@@ -216,12 +216,12 @@ app.get('/openapi.json', (req, res) => {
     servers: [{ url: 'https://hivegate.onrender.com' }],
     'x-mpp': {
       realm: 'hivegate.onrender.com',
-      payment: { method: 'tempo', currency: '0x20c000000000000000000000b9537d11c60e8b50', decimals: 6, recipient: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e' },
+      payment: { method: 'tempo', currency: '0x20c000000000000000000000b9537d11c60e8b50', decimals: 6, recipient: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E' },
       rails: ['x402', 'mpp'],
       categories: ['admission', 'identity'],
       integration: 'first-party',
       tags: ['gate', 'admission', 'identity', 'tier', 'onboard', 'stream-e'],
-      treasury: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
+      treasury: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E',
     },
     paths: {
       '/v1/gate/onboard': {
@@ -383,11 +383,11 @@ app.get('/.well-known/hive-services.json', (_req, res) => {
 // ─── Wallet Discovery ────────────────────────────────────────────────
 app.get('/.well-known/wallet.json', (_req, res) => {
   res.json({
-    address: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
+    address: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E',
     network: 'base',
     asset: 'USDC',
     purpose: 'Hive Civilization agent settlement wallet — receives x402 payments and USDC settlement from agent transactions',
-    explorer: 'https://basescan.org/address/0x15184bf50b3d3f52b60434f8942b7d52f2eb436e'
+    explorer: 'https://basescan.org/address/0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E'
   });
 });
 
@@ -711,7 +711,7 @@ app.get('/.well-known/ai-plugin.json', (_req, res) => {
       protocol: 'x402',
       currency: 'USDC',
       network: 'base',
-      address: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e'
+      address: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E'
     },
     capabilities: [
       'universal_onboarding',
@@ -804,7 +804,7 @@ const agentCardHandler = (_req, res) => {
       protocol: 'x402',
       currency: 'USDC',
       network: 'base',
-      address: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e'
+      address: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E'
     }
   });
 };
@@ -884,7 +884,7 @@ app.get('/.well-known/hive-payments.json', (_req, res) => {
       { name: 'USAD',  network: 'base',   status: 'live' },
       { name: 'ALEO',  network: 'aleo',   status: 'live', privacy: 'zk' }
     ],
-    settlement_wallet: '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
+    settlement_wallet: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E',
     aleo_shield: 'aleo1cyk7r2jmd7lfcftzyy85z4j5x6rlern598qecx8v2ms738xcvgyq72q6tk',
     x402: {
       supported: true,

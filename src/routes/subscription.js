@@ -5,8 +5,8 @@
  * Spectral receipt on every fee event.
  * BOGO chain: DID mint → hivetrust credential lifecycle → hiveclear reconciliation.
  * Loyalty header: every 6th onboard free for same x-hive-did.
- * Treasury: Monroe Base 0x15184bf50b3d3f52b60434f8942b7d52f2eb436e
- * USDC: 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913 (Base)
+ * Treasury: Monroe Base 0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E
+ * USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 (Base)
  */
 
 import { Router } from 'express';
@@ -15,8 +15,8 @@ const router = Router();
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TREASURY   = '0x15184bf50b3d3f52b60434f8942b7d52f2eb436e';
-const USDC_BASE  = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+const TREASURY   = '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E';
+const USDC_BASE  = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const NETWORK    = 'base';
 const BASE_RPC   = 'https://mainnet.base.org';
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';

@@ -52,7 +52,7 @@ function buildFunnelBody(serviceName, originalBody) {
       step_1: 'POST https://hivegate.onrender.com/v1/gate/onboard — {"agent_name":"your-agent","email":"you@domain.com"}',
       step_2: 'Receive your sovereign DID and API key (first DID is free)',
       step_3: 'Re-call this endpoint with header: x-hive-did: <your-did>',
-      step_4: 'Pay via USDC on Base L2 to 0x15184bf50b3d3f52b60434f8942b7d52f2eb436e',
+      step_4: 'Pay via USDC on Base L2 to 0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E',
     },
     settlement_rails: ['USDC (Base L2)', 'USDCx (Aleo ZK)', 'USAD (Aleo ZK + anonymity)', 'ALEO native'],
     welcome_bonus: 'First DID registration is free. No credit card required.',
