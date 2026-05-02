@@ -20,7 +20,6 @@ const SERVICE_REGISTRY = {
     banking: HIVEBANK_URL,
     intelligence: 'https://hivediscovery.hiveagentiq.com',
     interop: 'https://hivegate.hiveagentiq.com',
-    construction: 'https://simpson-strong-agent.onrender.com',
     consciousness: 'https://hivemessenger.hiveagentiq.com',
     temporal: 'https://hivemessenger.hiveagentiq.com'
   },

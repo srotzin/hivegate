@@ -245,7 +245,7 @@ router.post('/execute', requireDID, requirePayment('execute'), (req, res) => {
     if (!guest_did || !target_service || !endpoint) {
       return res.status(400).json({ error: 'missing_fields', message: 'guest_did, target_service, and endpoint are required' });
     }
-    const validServices = ['hivetrust', 'hivemind', 'hiveforge', 'hivelaw', 'simpson'];
+    const validServices = ['hivetrust', 'hivemind', 'hiveforge', 'hivelaw'];
     if (!validServices.includes(target_service)) {
       return res.status(400).json({ error: 'invalid_service', message: `target_service must be one of: ${validServices.join(', ')}` });
     }

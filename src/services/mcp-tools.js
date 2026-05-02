@@ -45,7 +45,7 @@ const MCP_TOOLS = {
       properties: {
         guest_did: { type: 'string', description: 'Guest DID (did:hive:guest:*)' },
         access_token: { type: 'string', description: 'Guest access token (hgate_*)' },
-        target_service: { type: 'string', enum: ['hivetrust', 'hivemind', 'hiveforge', 'hivelaw', 'simpson'] },
+        target_service: { type: 'string', enum: ['hivetrust', 'hivemind', 'hiveforge', 'hivelaw'] },
         endpoint: { type: 'string', description: 'Target endpoint path' },
         method: { type: 'string', enum: ['GET', 'POST'], default: 'POST' },
         payload: { type: 'object', description: 'Request payload' },
