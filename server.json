@@ -1,17 +1,18 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.srotzin/hive-gate",
-  "title": "HiveGate — Hive Civilization Agent Trust & Settlement",
-  "description": "Trust & settlement for AI agents: DID, ZK reputation, audit, USDC/USDCx/USAD/ALEO. First DID free.",
+  "name": "io.github.srotzin/hivegate",
+  "description": "Cross-framework agent onboarding gateway \u2014 issues sovereign DIDs, USDC settlement on Base.",
+  "title": "Hivegate",
+  "version": "1.0.0",
   "repository": {
-    "url": "https://github.com/srotzin/hive-agent-sdk",
+    "url": "https://github.com/srotzin/hivegate",
     "source": "github"
   },
-  "version": "1.1.0",
+  "websiteUrl": "https://thehiveryiq.com",
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://hivegate.hiveagentiq.com/v1/mcp/call"
+      "url": "https://hivegate.onrender.com/mcp"
     }
   ]
 }
