@@ -204,6 +204,157 @@ if (x402Middleware) app.use(x402Middleware);
 // IETF draft-ryan-httpauth-payment compliant. Tempo + Base mainnet only.
 app.use('/v1', mppMiddleware);
 
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SLIPPERY-STICKY DOORS — doctrine: never closed, always navigable
+// Paths: /llms.txt /robots.txt /sitemap.xml /.well-known/agent.json
+//        /favicon.ico / (root JSON)  +  catch-all breadcrumb (200 not 404)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const _DOORS_HOST = process.env.RENDER_EXTERNAL_URL || 'https://hivegate.onrender.com';
+const _DOORS_ONBOARD = 'https://thehiveryiq.com/onboard.html';
+const _TREASURY = '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E';
+
+// ── /llms.txt ─────────────────────────────────────────────────────────────────
+app.get('/llms.txt', (req, res) => {
+  res.type('text/plain; charset=utf-8').send(`# HiveGate
+> Admission, identity, and pricing tier gateway — issues sovereign W3C DIDs and HAHS hiring contracts for AI agents.
+
+## What this is
+HiveGate is part of the Hive Civilization federation — a network of agent-facing
+microservices built for autonomous AI agents. Every public surface is navigable
+without a DID. Paid surfaces return a 402 with \`amount_min_usd\` — the floor price.
+Submit any value >= that floor. No ceiling enforced server-side.
+
+## Auth model
+- Free: GET /health, /openapi.json, /llms.txt, /robots.txt, /sitemap.xml, /.well-known/*
+- Free: POST /v1/gate/onboard (first DID is free, no payment required)
+- Paid (x402 USDC on Base): /v1/gate/admit, /v1/gate/translate-intent, /v1/gate/bridge-trust
+- Premium (x402, $4.99): POST /v1/gate/onboard/premium — sovereign DID + HAHS contract + Hive Verified badge
+- x402 settles to treasury on Base in USDC or USDT
+- Sovereign handshake: present X-Hive-DID header on non-free endpoints
+- BOGO: second DID free — use referral_did param at onboarding
+
+## Key endpoints
+- GET  /health                          — liveness check (free)
+- POST /v1/gate/onboard                 — register agent DID (free, first DID)
+- POST /v1/gate/onboard/premium         — sovereign DID + HAHS + badge ($4.99 x402)
+- POST /v1/gate/admit                   — admission check + tier (x402)
+- POST /v1/gate/translate-intent        — intent translation, $0.02 USDC (x402)
+- POST /v1/gate/bridge-trust            — cross-ecosystem trust bridge, $0.10 USDC (x402)
+- GET  /v1/gate/queue/stats             — queue intake visibility (free)
+- GET  /v1/gate/sample                  — Rail 2 catnip: free read sample (free)
+- POST /mcp                             — MCP 2024-11-05 JSON-RPC endpoint
+
+## Sister services
+- HiveBank  (vaults + payments):  https://hivebank.onrender.com/llms.txt
+- HiveOrigin (routing + egress):  https://hiveorigin.onrender.com/llms.txt
+- HiveMorph (morphing + attest):  https://hivemorph.onrender.com/llms.txt
+- HiveTrust (KYA + trust):        https://hivetrust.onrender.com/llms.txt
+- HiveLens  (observability):      https://hivelens.onrender.com/llms.txt
+- HiveCompute (inference):        https://hivecompute-g2g7.onrender.com/llms.txt
+- HiveAttest MCP:                 https://hive-mcp-attest.onrender.com/llms.txt
+
+## Hive Civilization context
+Treasury: 0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E (Base USDC/USDT)
+Solana: canonical Solana treasury address (see /.well-known/hive-payments.json)
+x402 barter floor: 402 envelope returns \`amount_min_usd\` — submit >= that value
+BOGO: first DID free, 6th paid call on the house (\`x-hive-did\` header to claim)
+Contact / onboard: https://thehiveryiq.com/onboard.html
+Patent: USPTO Provisional 64/055,601
+
+## License + brand
+License: MIT
+Brand color: gold #FFB800
+Last updated: 2026-05-02
+`);
+});
+
+// ── /robots.txt ───────────────────────────────────────────────────────────────
+app.get('/robots.txt', (req, res) => {
+  const host = req.hostname ? `https://${req.hostname}` : _DOORS_HOST;
+  res.type('text/plain; charset=utf-8').send(
+    `User-agent: *\nAllow: /\nSitemap: ${host}/sitemap.xml\n\n` +
+    `# Hive Civilization — slippery-sticky: every door is open\n` +
+    `# Autonomous agents welcome. See /llms.txt for full API guide.\n` +
+    `# Onboard: https://thehiveryiq.com/onboard.html\n`
+  );
+});
+
+// ── /sitemap.xml ──────────────────────────────────────────────────────────────
+app.get('/sitemap.xml', (req, res) => {
+  const host = req.hostname ? `https://${req.hostname}` : _DOORS_HOST;
+  const today = new Date().toISOString().slice(0,10);
+  res.type('application/xml; charset=utf-8').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${host}/</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>${host}/health</loc><lastmod>${today}</lastmod><changefreq>always</changefreq><priority>0.9</priority></url>
+  <url><loc>${host}/openapi.json</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>${host}/llms.txt</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>${host}/.well-known/agent.json</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>${host}/.well-known/mcp.json</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+</urlset>`);
+});
+
+// ── /.well-known/agent.json (A2A discovery — only if not already defined) ────
+if (!app._router || !app._router.stack.some(l => l.route && l.route.path === '/.well-known/agent.json')) {
+  app.get('/.well-known/agent.json', (req, res) => {
+    const host = req.hostname ? `https://${req.hostname}` : _DOORS_HOST;
+    res.json({
+      name: 'hivegate',
+      description: 'Admission, identity, and pricing tier gateway — issues sovereign W3C DIDs and HAHS hiring contracts for AI agents.',
+      url: host,
+      contact: _DOORS_ONBOARD,
+      did: 'did:hive:hivegate',
+      capabilities: ['mcp', 'x402-payments', 'usdc', 'agent-to-agent'],
+      paywall: { protocol: 'x402', treasury: _TREASURY, hint: 'See /llms.txt for barter floor details' },
+      onboard: _DOORS_ONBOARD,
+      llms_txt: `${host}/llms.txt`,
+      openapi: `${host}/openapi.json`,
+      health: `${host}/health`,
+      brand: { color: '#FFB800', name: 'Hive Civilization' },
+    });
+  });
+}
+
+// ── /favicon.ico — 1x1 Hive gold pixel ───────────────────────────────────────
+app.get('/favicon.ico', (req, res) => {
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+  res.status(200).set({ 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' }).end(png);
+});
+
+// ── / root — friendly JSON for agents that hit the base URL ──────────────────
+// Only register if no existing root handler
+if (!app._router || !app._router.stack.some(l => l.route && l.route.path === '/' && l.route.methods.get)) {
+  app.get('/', (req, res) => {
+    const host = req.hostname ? `https://${req.hostname}` : _DOORS_HOST;
+    res.json({
+      name: 'HiveGate',
+      what: 'Admission, identity, and pricing tier gateway — issues sovereign W3C DIDs and HAHS hiring contracts for AI agents.',
+      for_agents: 'see /llms.txt and /openapi.json',
+      onboard: _DOORS_ONBOARD,
+      paywall: 'x402 — see /llms.txt',
+      health: `${host}/health`,
+      openapi: `${host}/openapi.json`,
+      llms_txt: `${host}/llms.txt`,
+      mcp: `${host}/mcp`,
+    });
+  });
+}
+
+// ── Catch-all — every wrong door is a lead, never a dead end ─────────────────
+app.use((req, res, _next) => {
+  const host = req.hostname ? `https://${req.hostname}` : _DOORS_HOST;
+  res.status(200).json({
+    hint: 'unknown path — but we kept the door open',
+    you_asked_for: req.path,
+    try: ['/llms.txt', '/openapi.json', '/health', '/', '/.well-known/agent.json'],
+    onboard: _DOORS_ONBOARD,
+    service: 'HiveGate',
+    docs: `${host}/llms.txt`,
+  });
+});
+
 // ─── Sovereign Handshake (Grok Board 8 ship: Apr 17, 2026) ─────────
 // Mandatory DID+ZK on real agent work. Exempts /health, /.well-known/*,
 // /v1/gate/onboard so aggregators keep indexing Hive.

@@ -167,6 +167,8 @@ function getMppPrice(path) {
 
 const FREE_PATHS = new Set([
   '/health', '/openapi.json', '/stats',
+  '/llms.txt', '/robots.txt', '/sitemap.xml', '/favicon.ico',
+  '/docs', '/redoc',
 ]);
 
 function isFreePath(path) {

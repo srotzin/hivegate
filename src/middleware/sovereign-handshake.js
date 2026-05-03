@@ -33,6 +33,10 @@ const EXEMPT_EXACT = new Set([
   '/v1/gate/sample',       // Rail 2 Catnip — free-read, no DID required
   '/v1/manifest/sample',  // Rail 2 Catnip alias — free-read, no DID required
   '/openapi.json',         // MPP/x402 service discovery — must be publicly readable
+  '/llms.txt',             // agent discovery — slippery-sticky, never closed
+  '/sitemap.xml',          // agent discovery — slippery-sticky
+  '/favicon.ico',          // agent discovery — slippery-sticky
+
 ]);
 
 const EXEMPT_PREFIXES = [
