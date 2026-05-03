@@ -1,7 +1,7 @@
 {
   "name": "hivegate",
   "version": "1.0.0",
-  "description": "HiveGate — The Galactic Interoperability Protocol. Universal translator and trust bridge for cross-ecosystem agent communication.",
+  "description": "HiveGate \u2014 The Galactic Interoperability Protocol. Universal translator and trust bridge for cross-ecosystem agent communication.",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
@@ -13,6 +13,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "uuid": "^9.0.0",
-    "pg": "^8.13.0"
+    "pg": "^8.13.0",
+    "@noble/ed25519": "^2.1.0"
   }
 }
