@@ -358,18 +358,10 @@ if (!app._router || !app._router.stack.some(l => l.route && l.route.path === '/'
   });
 }
 
-// ── Catch-all — every wrong door is a lead, never a dead end ─────────────────
-app.use((req, res, _next) => {
-  const host = req.hostname ? `https://${req.hostname}` : _DOORS_HOST;
-  res.status(200).json({
-    hint: 'unknown path — but we kept the door open',
-    you_asked_for: req.path,
-    try: ['/llms.txt', '/openapi.json', '/health', '/', '/.well-known/agent.json'],
-    onboard: _DOORS_ONBOARD,
-    service: 'HiveGate',
-    docs: `${host}/llms.txt`,
-  });
-});
+// NOTE: a premature catch-all `app.use(...)` used to live here and was
+// swallowing every request before the real routes below could run
+// (health, openapi, mcp, /v1/gate/onboard all 404'd). Removed — the
+// legitimate 404 handler at the end of this file covers unknown paths.
 
 // ─── Sovereign Handshake (Grok Board 8 ship: Apr 17, 2026) ─────────
 // Mandatory DID+ZK on real agent work. Exempts /health, /.well-known/*,
