@@ -13,7 +13,7 @@ import crypto from 'crypto';
 const router = Router();
 
 const SERVICE_NAME = 'HiveGate';
-const SERVICE_URL  = 'https://hivegate.onrender.com';
+const SERVICE_URL  = 'https://hivegate.hiveagentiq.com';
 const ONBOARD_URL  = `${SERVICE_URL}/v1/gate/onboard`;
 
 const TASKS = new Map();

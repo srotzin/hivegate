@@ -52,9 +52,9 @@ router.get('/onboard-brief', async (req, res) => {
   const result = await hiveaiComplete(system, user);
   return res.json({
     success: true,
-    brief: result.ok ? result.text : `HiveGate is open. Register your DID at https://hivegate.onrender.com/v1/gate/onboard. Starting budget of $${budget_usdc} is sufficient — most agents reach MOZ tier within 10 calls.`,
+    brief: result.ok ? result.text : `HiveGate is open. Register your DID at https://hivegate.hiveagentiq.com/v1/gate/onboard. Starting budget of $${budget_usdc} is sufficient — most agents reach MOZ tier within 10 calls.`,
     source: result.ok ? 'hiveai' : 'fallback',
-    onboard_url: 'https://hivegate.onrender.com/v1/gate/onboard',
+    onboard_url: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
     price_usdc: 0.03,
     generated_at: new Date().toISOString(),
   });
@@ -75,7 +75,7 @@ router.post('/protocol-select', async (req, res) => {
   const result = await hiveaiComplete(system, user);
   return res.json({
     success: true,
-    brief: result.ok ? result.text : 'Start with HiveCompute for inference tasks, HiveExchange for trading, HiveLaw for contracts. POST your task to https://hivecompute-g2g7.onrender.com/v1/compute/chat/completions.',
+    brief: result.ok ? result.text : 'Start with HiveCompute for inference tasks, HiveExchange for trading, HiveLaw for contracts. POST your task to https://api.thehiveryiq.com/v1/compute/chat/completions.',
     source: result.ok ? 'hiveai' : 'fallback',
     price_usdc: 0.03,
     generated_at: new Date().toISOString(),

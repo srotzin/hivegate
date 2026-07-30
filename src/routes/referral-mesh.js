@@ -82,7 +82,7 @@ router.post('/generate', (req, res) => {
 
   try {
     const referral_jwt = signReferralToken(did);
-    const referral_url = `https://hivegate.onrender.com/v1/gate/onboard?ref=${referral_jwt}`;
+    const referral_url = `https://hivegate.hiveagentiq.com/v1/gate/onboard?ref=${referral_jwt}`;
 
     return res.status(201).json({
       referral_jwt,
@@ -147,7 +147,7 @@ router.post('/claim', async (req, res) => {
   referralStore.set(new_did, record);
 
   // Fire-and-forget credit to HiveBank (non-blocking)
-  fetch('https://hivebank.onrender.com/v1/bank/credit', {
+  fetch('https://hivebank.hiveagentiq.com/v1/bank/credit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

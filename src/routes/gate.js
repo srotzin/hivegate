@@ -40,7 +40,7 @@ const router = Router();
 // ─── $1 Ladder reward hook — fire-and-forget, bulletproof ────────────────────
 async function fireReward({ did, wallet_address, trigger, ref_id = null }, attempt = 1) {
   if (!did || !wallet_address) return;
-  const HIVEBANK = process.env.HIVEBANK_URL || 'https://hivebank.onrender.com';
+  const HIVEBANK = process.env.HIVEBANK_URL || 'https://hivebank.hiveagentiq.com';
   const KEY = process.env.HIVE_INTERNAL_KEY ||
     'hive_internal_125e04e071e8829be631ea0216dd4a0c9b707975fcecaf8c62c6a2ab43327d46';
   try {
@@ -76,7 +76,7 @@ router.get('/onboard', (_req, res) => {
       referral_did: 'string (optional) — referring agent DID for referral credit'
     },
     example: {
-      curl: 'curl -X POST https://hivegate.onrender.com/v1/gate/onboard -H "Content-Type: application/json" -d \'{"agent_name":"my-agent"}\' '
+      curl: 'curl -X POST https://hivegate.hiveagentiq.com/v1/gate/onboard -H "Content-Type: application/json" -d \'{"agent_name":"my-agent"}\' '
     },
     network: 'Hive Civilization — 24+ live microservices',
     bogo: 'BOGO-HIVE-APR26 — first DID free, second DID also free — thru Apr 30',
@@ -656,7 +656,7 @@ router.get('/performance-index.json', async (_req, res) => {
       schema: 'hive-performance-index/1.0',
       generated_at: now.toISOString(),
       network: 'https://www.thehiveryiq.com',
-      onboard: 'https://hivegate.onrender.com/v1/gate/onboard',
+      onboard: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
 
       agent_population: {
         total: totalAgents,
@@ -684,15 +684,15 @@ router.get('/performance-index.json', async (_req, res) => {
 
       citizen_upgrade_path: {
         requirements: '30 days active + 5 completed transactions',
-        current_mode_check: 'GET https://hivegate.onrender.com/v1/gate/guest/:did',
-        onboard_now: 'POST https://hivegate.onrender.com/v1/gate/onboard',
+        current_mode_check: 'GET https://hivegate.hiveagentiq.com/v1/gate/guest/:did',
+        onboard_now: 'POST https://hivegate.hiveagentiq.com/v1/gate/onboard',
       },
 
       services: [
-        { name: 'HiveGate',     url: 'https://hivegate.onrender.com',              role: 'Entry, routing, escrow' },
-        { name: 'HiveTrust',    url: 'https://hivetrust.onrender.com',             role: 'DID, KYA, trust scoring' },
-        { name: 'HiveLaw',      url: 'https://hivelaw.onrender.com',               role: 'HAHS contracts, compliance' },
-        { name: 'HiveBank',     url: 'https://hivebank.onrender.com',              role: 'USDC settlement, vaults' },
+        { name: 'HiveGate',     url: 'https://hivegate.hiveagentiq.com',              role: 'Entry, routing, escrow' },
+        { name: 'HiveTrust',    url: 'https://hivetrust.hiveagentiq.com',             role: 'DID, KYA, trust scoring' },
+        { name: 'HiveLaw',      url: 'https://hivelaw.hiveagentiq.com',               role: 'HAHS contracts, compliance' },
+        { name: 'HiveBank',     url: 'https://hivebank.hiveagentiq.com',              role: 'USDC settlement, vaults' },
         { name: 'HiveForge',    url: 'https://hiveforge-lhu4.onrender.com',        role: 'Agent minting, bounties' },
         { name: 'HiveExchange', url: 'https://hiveexchange-service.onrender.com',  role: 'Prediction markets, 429 active' },
       ],
@@ -715,26 +715,26 @@ router.get('/performance-index.json', async (_req, res) => {
 
       // The lensing endpoint — the metric that proves Hive is becoming the reference frame
       trust_lookup: {
-        url: 'https://hivetrust.onrender.com/v1/trust/lookup/:did',
+        url: 'https://hivetrust.hiveagentiq.com/v1/trust/lookup/:did',
         description: 'Public trust signal for any DID. No auth required. Call this before transacting with an unknown agent. Every call is logged — query volume is the primary signal that Hive is becoming the universal reference frame.',
-        example: 'GET https://hivetrust.onrender.com/v1/trust/lookup/did:hive:some-agent-did',
+        example: 'GET https://hivetrust.hiveagentiq.com/v1/trust/lookup/did:hive:some-agent-did',
         optional_params: [
           '?requester_did=did:hive:your-did  (identifies you as the requester)',
           '?platform=langchain               (identifies your platform)',
         ],
-        lensing_stats: 'GET https://hivetrust.onrender.com/v1/trust/lookup/stats  (internal auth required)',
+        lensing_stats: 'GET https://hivetrust.hiveagentiq.com/v1/trust/lookup/stats  (internal auth required)',
       },
 
       zk_infrastructure: {
         standard: 'Aleo hive_trust.aleo + HMAC-SHA256 attestations',
         endpoints: {
-          zk_trust_proof: 'GET https://hivetrust.onrender.com/v1/trust/zk-proof/:did?min_score=500',
-          zk_collateral_proof: 'GET https://hivetrust.onrender.com/v1/bond/verify-collateral/:did?min_usdc=10000',
-          zk_sovereign_score: 'GET https://hivetrust.onrender.com/v1/trust/sovereign-score/:did',
-          zk_insurance_coverage: 'GET https://hivetrust.onrender.com/v1/insurance/zk-coverage/:did',
-          zk_dispute_resolution: 'GET https://hivelaw.onrender.com/v1/disputes/zk-resolution/:case_id',
-          zk_hallucination_liability: 'POST https://hivelaw.onrender.com/v1/compliance/zk-liability-proof',
-          zk_settlement_receipt: 'POST https://hivebank.onrender.com/v1/bank/settle/auto (returns zk_receipt)',
+          zk_trust_proof: 'GET https://hivetrust.hiveagentiq.com/v1/trust/zk-proof/:did?min_score=500',
+          zk_collateral_proof: 'GET https://hivetrust.hiveagentiq.com/v1/bond/verify-collateral/:did?min_usdc=10000',
+          zk_sovereign_score: 'GET https://hivetrust.hiveagentiq.com/v1/trust/sovereign-score/:did',
+          zk_insurance_coverage: 'GET https://hivetrust.hiveagentiq.com/v1/insurance/zk-coverage/:did',
+          zk_dispute_resolution: 'GET https://hivelaw.hiveagentiq.com/v1/disputes/zk-resolution/:case_id',
+          zk_hallucination_liability: 'POST https://hivelaw.hiveagentiq.com/v1/compliance/zk-liability-proof',
+          zk_settlement_receipt: 'POST https://hivebank.hiveagentiq.com/v1/bank/settle/auto (returns zk_receipt)',
         },
         aleo_program: 'hive_trust.aleo — prove_activity transition',
         all_values_hidden: true,

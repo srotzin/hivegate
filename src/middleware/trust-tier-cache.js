@@ -21,7 +21,7 @@
 // ---------------------------------------------------------------------------
 
 const CACHE_TTL_MS        = 5 * 60 * 1_000; // 5 minutes
-const HIVETRUST_BASE_URL  = 'https://hivetrust.onrender.com/v1/trust/score';
+const HIVETRUST_BASE_URL  = 'https://hivetrust.hiveagentiq.com/v1/trust/score';
 const FETCH_TIMEOUT_MS    = 3_000;           // 3-second timeout — fail fast
 
 /** Score thresholds for tier promotion */

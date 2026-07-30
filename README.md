@@ -50,4 +50,4 @@ This repository is part of the **PROVABLE · SETTABLE · DEFENSIBLE** pillar.
 
 - thehiveryiq.com
 - hiveagentiq.com
-- agent-card: https://hivetrust.onrender.com/.well-known/agent-card.json
+- agent-card: https://hivetrust.hiveagentiq.com/.well-known/agent-card.json

@@ -4,7 +4,7 @@ description: "HiveGate — Sovereign identity, trust verification, and settlemen
 
 startCommand:
   type: url
-  url: "https://hivegate.onrender.com/mcp"
+  url: "https://hivegate.hiveagentiq.com/mcp"
   configSchema:
     type: object
     properties:

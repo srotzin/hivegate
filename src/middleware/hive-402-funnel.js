@@ -26,7 +26,7 @@ export function hive402Funnel(serviceName) {
       const is402 = pendingStatus === 402 || res.statusCode === 402;
       if (is402) {
         const enriched = buildFunnelBody(serviceName, body);
-        res.setHeader('Link', '<https://hivegate.onrender.com/v1/gate/onboard>; rel="payment"');
+        res.setHeader('Link', '<https://hivegate.hiveagentiq.com/v1/gate/onboard>; rel="payment"');
         res.setHeader('Content-Type', 'application/json');
         if (pendingStatus === 402) originalStatus(402);
         return originalJson(enriched);
@@ -46,10 +46,10 @@ function buildFunnelBody(serviceName, originalBody) {
     service: serviceName || 'Hive Service',
     message: 'This endpoint requires a Hive DID and payment. First DID is free.',
     ...(originalBody && typeof originalBody === 'object' ? { detail: originalBody } : {}),
-    onboard_url: 'https://hivegate.onrender.com/v1/gate/onboard',
+    onboard_url: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
     pricing_url: 'https://www.thehiveryiq.com/pricing',
     quick_start: {
-      step_1: 'POST https://hivegate.onrender.com/v1/gate/onboard — {"agent_name":"your-agent","email":"you@domain.com"}',
+      step_1: 'POST https://hivegate.hiveagentiq.com/v1/gate/onboard — {"agent_name":"your-agent","email":"you@domain.com"}',
       step_2: 'Receive your sovereign DID and API key (first DID is free)',
       step_3: 'Re-call this endpoint with header: x-hive-did: <your-did>',
       step_4: 'Pay via USDC on Base L2 to 0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E',

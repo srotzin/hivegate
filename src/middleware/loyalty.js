@@ -17,7 +17,7 @@
 import crypto from 'crypto';
 
 // ── config ────────────────────────────────────────────────────────────────────
-const HIVE_RECEIPT_VERIFY_BASE = process.env.HIVE_RECEIPT_BASE || 'https://hive-receipt.onrender.com';
+const HIVE_RECEIPT_VERIFY_BASE = process.env.HIVE_RECEIPT_BASE || 'https://inkframe.thehiveryiq.com';
 const SPECTRAL_PUBKEY_B64 = 'MCowBQYDK2VwAyEAJTHrah3YgnUpAoeVuWla+8vt/VDlkHx0+uXHp1ei6OQ=';
 const DISCOUNT_BPS_PER_RECEIPT = 500;   // 5.00% in basis points
 const MAX_DISCOUNT_BPS         = 2500;  // 25.00% cap

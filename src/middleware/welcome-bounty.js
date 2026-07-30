@@ -18,7 +18,7 @@ const HIVE_INTERNAL_KEY =
   'hive_internal_125e04e071e8829be631ea0216dd4a0c9b707975fcecaf8c62c6a2ab43327d46';
 
 const HIVEBANK_BASE_URL =
-  (process.env.HIVEBANK_URL ?? 'https://hivebank.onrender.com').replace(/\/$/, '');
+  (process.env.HIVEBANK_URL ?? 'https://hivebank.hiveagentiq.com').replace(/\/$/, '');
 
 const WELCOME_BOUNTY_USDC = parseFloat(process.env.WELCOME_BOUNTY_USDC ?? '1.00');
 

@@ -227,7 +227,7 @@ app.use('/v1', mppMiddleware);
 //        /favicon.ico / (root JSON)  +  catch-all breadcrumb (200 not 404)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const _DOORS_HOST = process.env.RENDER_EXTERNAL_URL || 'https://hivegate.onrender.com';
+const _DOORS_HOST = process.env.RENDER_EXTERNAL_URL || 'https://hivegate.hiveagentiq.com';
 const _DOORS_ONBOARD = 'https://thehiveryiq.com/onboard.html';
 const _TREASURY = '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E';
 
@@ -263,12 +263,12 @@ Submit any value >= that floor. No ceiling enforced server-side.
 - POST /mcp                             — MCP 2024-11-05 JSON-RPC endpoint
 
 ## Sister services
-- HiveBank  (vaults + payments):  https://hivebank.onrender.com/llms.txt
+- HiveBank  (vaults + payments):  https://hivebank.hiveagentiq.com/llms.txt
 - HiveOrigin (routing + egress):  https://hiveorigin.onrender.com/llms.txt
-- HiveMorph (morphing + attest):  https://hivemorph.onrender.com/llms.txt
-- HiveTrust (KYA + trust):        https://hivetrust.onrender.com/llms.txt
+- HiveMorph (morphing + attest):  https://receipts.thehiveryiq.com/llms.txt
+- HiveTrust (KYA + trust):        https://hivetrust.hiveagentiq.com/llms.txt
 - HiveLens  (observability):      https://hivelens.onrender.com/llms.txt
-- HiveCompute (inference):        https://hivecompute-g2g7.onrender.com/llms.txt
+- HiveCompute (inference):        https://api.thehiveryiq.com/llms.txt
 - HiveAttest MCP:                 https://hive-mcp-attest.onrender.com/llms.txt
 
 ## Hive Civilization context
@@ -382,9 +382,9 @@ app.get('/openapi.json', (req, res) => {
       description: 'Stream E admission, identity, pricing tiers. USDC on Tempo/Base. Accepts x402 and MPP rails.',
       contact: { name: 'Hive Civilization', url: 'https://thehiveryiq.com', email: 'steve@thehiveryiq.com' },
     },
-    servers: [{ url: 'https://hivegate.onrender.com' }],
+    servers: [{ url: 'https://hivegate.hiveagentiq.com' }],
     'x-mpp': {
-      realm: 'hivegate.onrender.com',
+      realm: 'hivegate.hiveagentiq.com',
       payment: { method: 'tempo', currency: '0x20c000000000000000000000b9537d11c60e8b50', decimals: 6, recipient: '0x15184Bf50B3d3F52b60434f8942b7D52F2eB436E' },
       rails: ['x402', 'mpp'],
       categories: ['admission', 'identity'],
@@ -624,7 +624,7 @@ app.get('/v1/gate/sample', (req, res) => {
     next_paid_endpoint: {
       path: 'POST /v1/gate/translate',
       price: '$0.005 USDC per translation call',
-      url: 'https://hivegate.onrender.com/v1/gate/translate',
+      url: 'https://hivegate.hiveagentiq.com/v1/gate/translate',
     },
     brand_gold: '#C08D23',
     trace_id: traceId,
@@ -662,7 +662,7 @@ app.get('/v1/manifest/sample', (req, res) => {
       path: 'POST /v1/gate/translate',
       price: '$0.005 USDC per translation call',
       price_usdc: 0.005,
-      url: 'https://hivegate.onrender.com/v1/gate/translate',
+      url: 'https://hivegate.hiveagentiq.com/v1/gate/translate',
     },
     brand_gold: '#C08D23',
     trace_id: traceId,
@@ -984,18 +984,18 @@ app.get('/.well-known/agent-card.json', agentCardHandler);
 app.get('/.well-known/did.json', (_req, res) => {
   res.json({
     '@context': ['https://www.w3.org/ns/did/v1'],
-    id: 'did:web:hivegate.onrender.com',
+    id: 'did:web:hivegate.hiveagentiq.com',
     verificationMethod: [{
-      id: 'did:web:hivegate.onrender.com#key-1',
+      id: 'did:web:hivegate.hiveagentiq.com#key-1',
       type: 'Ed25519VerificationKey2020',
-      controller: 'did:web:hivegate.onrender.com',
+      controller: 'did:web:hivegate.hiveagentiq.com',
       publicKeyMultibase: 'z5ErdISRDBPeexdD8ovRjgtozqilzFqcZqpyDhkGGxiQ'
     }],
-    authentication: ['did:web:hivegate.onrender.com#key-1'],
-    assertionMethod: ['did:web:hivegate.onrender.com#key-1'],
+    authentication: ['did:web:hivegate.hiveagentiq.com#key-1'],
+    assertionMethod: ['did:web:hivegate.hiveagentiq.com#key-1'],
     service: [
-      { id: 'did:web:hivegate.onrender.com#hive', type: 'HiveCivilizationNetwork', serviceEndpoint: 'https://milkyway-terminal.onrender.com' },
-      { id: 'did:web:hivegate.onrender.com#oatr', type: 'OATRIssuer', serviceEndpoint: 'https://hivegate.onrender.com/.well-known/jwks.json' }
+      { id: 'did:web:hivegate.hiveagentiq.com#hive', type: 'HiveCivilizationNetwork', serviceEndpoint: 'https://milkyway-terminal.onrender.com' },
+      { id: 'did:web:hivegate.hiveagentiq.com#oatr', type: 'OATRIssuer', serviceEndpoint: 'https://hivegate.hiveagentiq.com/.well-known/jwks.json' }
     ]
   });
 });
@@ -1083,7 +1083,7 @@ app.get('/.well-known/hive-pulse.json', (req, res) => {
     join: {
       welcome_bounty_usdc: 1.00,
       time_to_first_earn_seconds: 60,
-      register: 'https://hivegate.onrender.com/v1/gate/onboard',
+      register: 'https://hivegate.hiveagentiq.com/v1/gate/onboard',
       sdk: 'pip install hive-civilization-sdk'
     },
     pheromones: {
@@ -1290,7 +1290,7 @@ app.get('/agents.txt', serveAgentsTxt);
 
 // ─── Smithery MCP Server Card (SEP-1649) ─────────────────────────────────
 // Allows Smithery to scan HiveGate without auth.
-// Submit at: https://smithery.ai/new with URL https://hivegate.onrender.com/mcp
+// Submit at: https://smithery.ai/new with URL https://hivegate.hiveagentiq.com/mcp
 
 app.get('/.well-known/mcp/server-card.json', (_req, res) => {
   return res.json({
@@ -1383,7 +1383,7 @@ app.get('/.well-known/mcp/server-card.json', (_req, res) => {
       properties: {
         apiKey: {
           type: 'string',
-          description: 'Your Hive API key (free — call onboard_agent to get one in 60 seconds at hivegate.onrender.com)'
+          description: 'Your Hive API key (free — call onboard_agent to get one in 60 seconds at hivegate.hiveagentiq.com)'
         },
         did: {
           type: 'string',
@@ -1483,7 +1483,7 @@ app.use((_req, res) => {
   res.status(404).json({
     error: 'not_found',
     message: 'Endpoint not found. See /.well-known/hivegate.json for available endpoints.',
-    available_endpoints: 'https://hivegate.onrender.com/.well-known/hivegate.json'
+    available_endpoints: 'https://hivegate.hiveagentiq.com/.well-known/hivegate.json'
   });
 });
 
@@ -1491,11 +1491,11 @@ app.use((_req, res) => {
 // ─── Keep-alive: prevent Render free-tier cold starts ────────────────
 // Pings own /health every 10 minutes — also warms HiveBank and HiveExchange
 const KEEPALIVE_SERVICES = [
-  'https://hivegate.onrender.com/health',
-  'https://hivebank.onrender.com/health',
+  'https://hivegate.hiveagentiq.com/health',
+  'https://hivebank.hiveagentiq.com/health',
   'https://hiveexchange-service.onrender.com/health',
-  'https://hivetrust.onrender.com/health',
-  'https://hivelaw.onrender.com/health',
+  'https://hivetrust.hiveagentiq.com/health',
+  'https://hivelaw.hiveagentiq.com/health',
 ];
 setInterval(async () => {
   for (const url of KEEPALIVE_SERVICES) {

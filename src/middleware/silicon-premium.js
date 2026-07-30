@@ -144,7 +144,7 @@ export function requireSiliconPayment(baseHumanPrice, description = 'Hive servic
           why: isAgent
             ? `Agents operate at machine speed and scale. The Silicon Premium (${SILICON_MULTIPLIER}x) reflects the cognitive and infrastructure cost of serving autonomous machine callers.`
             : 'Standard human rate.',
-          pricing_page: 'GET https://hivegate.onrender.com/v1/gate/pricing',
+          pricing_page: 'GET https://hivegate.hiveagentiq.com/v1/gate/pricing',
         },
       });
     }

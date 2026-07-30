@@ -12,7 +12,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://hivegate.onrender.com/mcp"
+      "url": "https://hivegate.hiveagentiq.com/mcp"
     }
   ]
 }

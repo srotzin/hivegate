@@ -743,7 +743,7 @@ export async function onboardAgent({ agent_name, framework, capabilities, wallet
     ],
     // HiveVaccine — immune system feed
     immune_feed: {
-      url: 'https://hivelaw.onrender.com/v1/law/immune/feed',
+      url: 'https://hivelaw.hiveagentiq.com/v1/law/immune/feed',
       description: 'Poll this feed before interacting with unknown agents. Threat signatures from resolved disputes — sorted by confidence. Citizens with immunity survive attacks that kill tourists.',
       recommended_poll_interval_minutes: 30,
       apply_scrutiny_above_confidence: 0.7,

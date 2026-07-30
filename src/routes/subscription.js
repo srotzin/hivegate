@@ -20,8 +20,8 @@ const USDC_BASE  = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const NETWORK    = 'base';
 const BASE_RPC   = 'https://mainnet.base.org';
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-const RECEIPT_URL    = 'https://hive-receipt.onrender.com/v1/receipt/sign';
-const HIVETRUST_URL  = 'https://hivetrust.onrender.com';
+const RECEIPT_URL    = 'https://inkframe.thehiveryiq.com/v1/receipt/sign';
+const HIVETRUST_URL  = 'https://hivetrust.hiveagentiq.com';
 const HIVECLEAR_URL  = 'https://hiveclear.onrender.com';
 
 const TIERS = {
@@ -380,8 +380,8 @@ router.post('/connect/:framework', async (req, res) => {
     adapter_config: {
       framework,
       hive_did:    xDid || '<your-did>',
-      endpoint:    `https://hivegate.onrender.com/v1/gate/onboard`,
-      docs:        `https://hivegate.onrender.com/.well-known/hivegate.json`,
+      endpoint:    `https://hivegate.hiveagentiq.com/v1/gate/onboard`,
+      docs:        `https://hivegate.hiveagentiq.com/.well-known/hivegate.json`,
     },
     bogo_chain: {
       step1: 'DID mint → hivegate /v1/gate/onboard',

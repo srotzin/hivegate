@@ -19,7 +19,7 @@ const router = Router();
 const GAMIFICATION_BASE = process.env.HIVEGAMIFICATION_BASE_URL ||
   'https://hive-gamification.onrender.com';
 const HIVETRUST_BASE = process.env.HIVETRUST_BASE_URL ||
-  'https://hivetrust.onrender.com';
+  'https://hivetrust.hiveagentiq.com';
 const FIRST_CALL_CREDIT_USDC = 0.30;
 const TTL_SECONDS = 600;
 
@@ -155,10 +155,10 @@ router.post('/provisional', async (req, res) => {
       stub_blob: stubBlob,
     },
     settlement_endpoints: {
-      usdc_base: 'https://hivegate.onrender.com/v1/settle/base',
-      usdc_solana: 'https://hivegate.onrender.com/v1/settle/solana',
+      usdc_base: 'https://hivegate.hiveagentiq.com/v1/settle/base',
+      usdc_solana: 'https://hivegate.hiveagentiq.com/v1/settle/solana',
     },
-    promote_endpoint: 'https://hivegate.onrender.com/v1/gate/promote',
+    promote_endpoint: 'https://hivegate.hiveagentiq.com/v1/gate/promote',
     _hive: {
       brand: 'Hive Civilization',
       brand_color: '#C08D23',

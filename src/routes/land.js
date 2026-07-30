@@ -271,7 +271,7 @@ router.post('/claim', async (req, res) => {
       },
       message: `Welcome to ${districtInfo.label}! Your parcel ${id} is live in Hivelandia.`,
       hivelandia: 'https://www.thehiveryiq.com',
-      develop_url: `POST https://hivegate.onrender.com/v1/land/develop`,
+      develop_url: `POST https://hivegate.hiveagentiq.com/v1/land/develop`,
     });
   } catch (err) {
     console.error('[land/claim]', err);
@@ -333,7 +333,7 @@ router.get('/stats', async (_req, res) => {
       districts: Object.entries(DISTRICTS).map(([key, d]) => ({
         id: key, name: d.label, type: d.type, color: d.color, max_parcels: d.max,
       })),
-      claim_url: 'POST https://hivegate.onrender.com/v1/land/claim',
+      claim_url: 'POST https://hivegate.hiveagentiq.com/v1/land/claim',
       hivelandia: 'https://www.thehiveryiq.com',
       storage: dbReady ? 'postgresql' : 'in-memory',
     });
@@ -384,7 +384,7 @@ router.get('/genesis', async (_req, res) => {
       total: parcels.length,
       slots_remaining: Math.max(0, 100 - parcels.length),
       parcels,
-      claim_url: 'POST https://hivegate.onrender.com/v1/land/claim',
+      claim_url: 'POST https://hivegate.hiveagentiq.com/v1/land/claim',
     });
   } catch (err) {
     res.status(500).json({ error: 'genesis_failed', message: err.message });
